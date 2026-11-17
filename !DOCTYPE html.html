@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Cockpit Boursier Modulable</title>
+  <script src="https://jsdelivr.net"></script>
+  <style>
+    :root {
+      --bg-main: #0b1120;
+      --bg-card: #131c31;
+      --bg-sub: #0f172a;
+      --border: #23304d;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #10b981;
+      --accent-blue: #3b82f6;
+      --danger: #ef4444;
+    }
+
+    body.light-theme {
+      --bg-main: #f1f5f9;
+      --bg-card: #ffffff;
+      --bg-sub: #f8fafc;
+      --border: #cbd5e1;
+      --text-main: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); padding: 20px; line-height: 1.5; transition: background 0.2s, color 0.2s; }
+    
+    /* En-tête */
+    header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
+    header h1 { font-size: 1.45rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
+    .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    
+    .btn { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn:hover { border-color: var(--accent-blue); }
+    .btn-primary { background: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); }
+    .btn-primary:hover { opacity: 0.9; }
+    .btn-sm { padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; }
+    .btn-danger { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
+
+    /* Grille modulable */
+    .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 1050px) { .dashboard-grid { grid-template-columns: 1fr; } }
+    .span-full { grid-column: 1 / -1; }
+    .hidden-block { display: none !important; }
+
+    .card { background-color: var(--bg-card); border-radius: 16px; padding: 20px; border: 1px solid var(--border); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); display: flex; flex-direction: column; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; gap: 10px; flex-wrap: wrap; }
+    .card-title { font-size: 1.05rem; font-weight: 700; }
+    .card-controls { display: flex; gap: 5px; }
+
+    /* KPIs Gauche */
+    .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
+    .kpi-box { background-color: var(--bg-sub); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
+    .kpi-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
+    .kpi-value { font-size: 1.15rem; font-weight: 700; }
+
+    .charts-split { display: grid; grid-template-columns: 1.15fr 0.85fr; gap: 12px; flex: 1; }
+    .charts-split.single-chart { grid-template-columns: 1fr; }
+    @media (max-width: 650px) { .charts-split { grid-template-columns: 1fr; } }
+    .chart-box { background: var(--bg-sub); padding: 12px; border-radius: 12px; border: 1px solid var(--border); height: 260px; }
+    .chart-box-title { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; text-align: center; }
+
+    .widget-box { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-sub); }
+
+    /* Panneau latéral de configuration (Modal) */
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 100; display: none; justify-content: flex-end; }
+    .drawer-overlay.open { display: flex; }
+    .drawer { width: 100%; max-width: 480px; background: var(--bg-card); height: 100%; padding: 24px; overflow-y: auto; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px; }
+    .drawer-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 12px; }
+    .section-box { background: var(--bg-sub); padding: 14px; border-radius: 12px; border: 1px solid var(--border); }
+    .section-box h3 { font-size: 0.95rem; margin-bottom: 10px; color: var(--accent-blue); }
+    
+    .form-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 6px; margin-bottom: 8px; align-items: center; }
+    .fav-row { display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 6px; margin-bottom: 8px; align-items: center; }
+    input, select { width: 100%; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; }
+    .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 0.88rem; }
+    .hint { font-size: 0.76rem; color: var(--text-muted); margin-top: 6px; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>📊 Mon Cockpit Boursier</h1>
+    <div class="header-actions">
+      <button class="btn" onclick="toggleTheme()" title="Changer le thème clair/sombre">🌓 Thème</button>
+      <button class="btn btn-primary" onclick="openDrawer()">⚙️ Personnaliser & Éditer</button>
+    </div>
+  </header>
+
+  <!-- GRILLE MODULABLE -->
+  <div class="dashboard-grid" id="dashboardGrid">
+    
+    <!-- BLOC 1 : MES INVESTISSEMENTS -->
+    <div class="card" id="block-portfolio" data-id="portfolio">
+      <div class="card-header">
+        <span class="card-title">💼 Mes Investissements (Privé)</span>
+        <div class="card-controls">
+          <button class="btn btn-sm" onclick="moveBlock('portfolio', -1)" title="Déplacer avant">◀</button>
+          <button class="btn btn-sm" onclick="moveBlock('portfolio', 1)" title="Déplacer après">▶</button>
+          <button class="btn btn-sm" onclick="toggleWidth('portfolio')" title="Pleine largeur / Demi-largeur">↔</button>
+        </div>
+      </div>
+      
+      <div class="kpi-row">
+        <div class="kpi-box">
+          <div class="kpi-label">Argent déposé</div>
+          <div class="kpi-value" id="kpiInvesti">0 €</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Valeur actuelle</div>
+          <div class="kpi-value" id="kpiActuel">0 €</div>
+        </div>
+        <div class="kpi-box">
+          <div class="kpi-label">Gain net</div>
+          <div class="kpi-value" id="kpiGain">0 €</div>
+        </div>
+      </div>
+
+      <div class="charts-split" id="portfolioChartsWrapper">
+        <div class="chart-box" id="box-growth">
+          <div class="chart-box-title">Évolution 6 mois (Valeur vs Dépôts)</div>
+          <div style="height: 210px;"><canvas id="growthChart"></canvas></div>
+        </div>
+        <div class="chart-box" id="box-pie">
+          <div class="chart-box-title">Répartition actuelle (€)</div>
+          <div style="height: 210px;"><canvas id="portfolioChart"></canvas></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BLOC 2 : MES FAVORITES EN TEMPS RÉEL -->
+    <div class="card" id="block-favorites" data-id="favorites">
+      <div class="card-header">
+        <span class="card-title">⭐ Mes Favorites & Surveillées</span>
+        <div class="card-controls">
+          <button class="btn btn-sm" onclick="moveBlock('favorites', -1)" title="Déplacer avant">◀</button>
+          <button class="btn btn-sm" onclick="moveBlock('favorites', 1)" title="Déplacer après">▶</button>
+          <button class="btn btn-sm" onclick="toggleWidth('favorites')" title="Pleine largeur / Demi-largeur">↔</button>
+        </div>
+      </div>
+      <div class="widget-box" style="height: 365px;" id="tvFavoritesContainer"></div>
+    </div>
+
+    <!-- BLOC 3 : GRANDES BOURSES MONDIALES -->
+    <div class="card span-full" id="block-indices" data-id="indices">
+      <div class="card-header">
+        <span class="card-title">🌍 Principales Places Boursières Mondiales</span>
+        <div class="card-controls">
+          <button class="btn btn-sm" onclick="moveBlock('indices', -1)" title="Déplacer avant">◀</button>
+          <button class="btn btn-sm" onclick="moveBlock('indices', 1)" title="Déplacer après">▶</button>
+          <button class="btn btn-sm" onclick="toggleWidth('indices')" title="Pleine largeur / Demi-largeur">↔</button>
+        </div>
+      </div>
+      <div class="widget-box" style="height: 320px;" id="tvIndicesContainer"></div>
+    </div>
+
+  </div>
+
+  <!-- PANNEAU DE PERSONNALISATION & ÉDITION -->
+  <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawerOnBg(event)">
+    <div class="drawer">
+      <div class="drawer-header">
+        <h2>⚙️ Configuration du Dashboard</h2>
+        <button class="btn btn-sm" onclick="closeDrawer()">✕ Fermer</button>
+      </div>
+
+      <!-- 1. Éditer mon portefeuille privé -->
+      <div class="section-box">
+        <h3>💼 1. Mes investissements (Stocké sur cet appareil)</h3>
+        <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 6px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">
+          <span>Nom</span><span>Déposé (€)</span><span>Actuel (€)</span><span></span>
+        </div>
+        <div id="portfolioInputs"></div>
+        <button class="btn btn-sm" style="margin-top: 6px;" onclick="addPortfolioRow()">+ Ajouter une ligne</button>
+        <p class="hint">🔒 Ces montants restent enregistrés uniquement dans votre navigateur et ne sont jamais envoyés sur GitHub.</p>
+      </div>
+
+      <!-- 2. Choisir mes bourses favorites -->
+      <div class="section-box">
+        <h3>⭐ 2. Mes bourses favorites (Temps réel)</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 6px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">
