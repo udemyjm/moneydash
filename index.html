@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Mon Cockpit Boursier Modulable</title>
+  <title>Mon Cockpit Boursier</title>
   <script src="https://jsdelivr.net"></script>
   <style>
     :root {
@@ -27,22 +27,19 @@
       --text-muted: #64748b;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; }
-    body { background-color: var(--bg-main); color: var(--text-main); padding: 20px; line-height: 1.5; transition: background 0.2s, color 0.2s; }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Roboto, Arial, sans-serif; }
+    body { background-color: var(--bg-main); color: var(--text-main); padding: 20px; line-height: 1.5; }
     
-    /* En-tête */
     header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
     header h1 { font-size: 1.45rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
     .header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
     
-    .btn { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+    .btn { background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); padding: 8px 14px; border-radius: 10px; font-size: 0.85rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
     .btn:hover { border-color: var(--accent-blue); }
     .btn-primary { background: var(--accent-blue); color: #ffffff; border-color: var(--accent-blue); }
-    .btn-primary:hover { opacity: 0.9; }
-    .btn-sm { padding: 4px 8px; font-size: 0.75rem; border-radius: 6px; }
+    .btn-sm { padding: 4px 9px; font-size: 0.78rem; border-radius: 6px; }
     .btn-danger { color: var(--danger); border-color: rgba(239, 68, 68, 0.4); }
 
-    /* Grille modulable */
     .dashboard-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
     @media (max-width: 1050px) { .dashboard-grid { grid-template-columns: 1fr; } }
     .span-full { grid-column: 1 / -1; }
@@ -53,7 +50,6 @@
     .card-title { font-size: 1.05rem; font-weight: 700; }
     .card-controls { display: flex; gap: 5px; }
 
-    /* KPIs Gauche */
     .kpi-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 16px; }
     .kpi-box { background-color: var(--bg-sub); padding: 12px; border-radius: 12px; border: 1px solid var(--border); }
     .kpi-label { font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px; text-transform: uppercase; }
@@ -66,8 +62,8 @@
     .chart-box-title { font-size: 0.78rem; color: var(--text-muted); margin-bottom: 8px; text-align: center; }
 
     .widget-box { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: var(--bg-sub); }
+    iframe { border: none; width: 100%; height: 100%; display: block; }
 
-    /* Panneau latéral de configuration (Modal) */
     .drawer-overlay { position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 100; display: none; justify-content: flex-end; }
     .drawer-overlay.open { display: flex; }
     .drawer { width: 100%; max-width: 480px; background: var(--bg-card); height: 100%; padding: 24px; overflow-y: auto; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 20px; }
@@ -77,7 +73,7 @@
     
     .form-row { display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 6px; margin-bottom: 8px; align-items: center; }
     .fav-row { display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 6px; margin-bottom: 8px; align-items: center; }
-    input, select { width: 100%; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; }
+    input { width: 100%; padding: 7px 9px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-card); color: var(--text-main); font-size: 0.85rem; }
     .toggle-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; font-size: 0.88rem; }
     .hint { font-size: 0.76rem; color: var(--text-muted); margin-top: 6px; }
   </style>
@@ -87,22 +83,20 @@
   <header>
     <h1>📊 Mon Cockpit Boursier</h1>
     <div class="header-actions">
-      <button class="btn" onclick="toggleTheme()" title="Changer le thème clair/sombre">🌓 Thème</button>
+      <button class="btn" onclick="toggleTheme()">🌓 Thème</button>
       <button class="btn btn-primary" onclick="openDrawer()">⚙️ Personnaliser & Éditer</button>
     </div>
   </header>
 
-  <!-- GRILLE MODULABLE -->
   <div class="dashboard-grid" id="dashboardGrid">
     
-    <!-- BLOC 1 : MES INVESTISSEMENTS -->
-    <div class="card" id="block-portfolio" data-id="portfolio">
+    <div class="card" id="block-portfolio">
       <div class="card-header">
         <span class="card-title">💼 Mes Investissements (Privé)</span>
         <div class="card-controls">
-          <button class="btn btn-sm" onclick="moveBlock('portfolio', -1)" title="Déplacer avant">◀</button>
-          <button class="btn btn-sm" onclick="moveBlock('portfolio', 1)" title="Déplacer après">▶</button>
-          <button class="btn btn-sm" onclick="toggleWidth('portfolio')" title="Pleine largeur / Demi-largeur">↔</button>
+          <button class="btn btn-sm" onclick="moveBlock('portfolio', -1)">◀</button>
+          <button class="btn btn-sm" onclick="moveBlock('portfolio', 1)">▶</button>
+          <button class="btn btn-sm" onclick="toggleWidth('portfolio')">↔</button>
         </div>
       </div>
       
@@ -133,27 +127,25 @@
       </div>
     </div>
 
-    <!-- BLOC 2 : MES FAVORITES EN TEMPS RÉEL -->
-    <div class="card" id="block-favorites" data-id="favorites">
+    <div class="card" id="block-favorites">
       <div class="card-header">
         <span class="card-title">⭐ Mes Favorites & Surveillées</span>
         <div class="card-controls">
-          <button class="btn btn-sm" onclick="moveBlock('favorites', -1)" title="Déplacer avant">◀</button>
-          <button class="btn btn-sm" onclick="moveBlock('favorites', 1)" title="Déplacer après">▶</button>
-          <button class="btn btn-sm" onclick="toggleWidth('favorites')" title="Pleine largeur / Demi-largeur">↔</button>
+          <button class="btn btn-sm" onclick="moveBlock('favorites', -1)">◀</button>
+          <button class="btn btn-sm" onclick="moveBlock('favorites', 1)">▶</button>
+          <button class="btn btn-sm" onclick="toggleWidth('favorites')">↔</button>
         </div>
       </div>
       <div class="widget-box" style="height: 365px;" id="tvFavoritesContainer"></div>
     </div>
 
-    <!-- BLOC 3 : GRANDES BOURSES MONDIALES -->
-    <div class="card span-full" id="block-indices" data-id="indices">
+    <div class="card span-full" id="block-indices">
       <div class="card-header">
         <span class="card-title">🌍 Principales Places Boursières Mondiales</span>
         <div class="card-controls">
-          <button class="btn btn-sm" onclick="moveBlock('indices', -1)" title="Déplacer avant">◀</button>
-          <button class="btn btn-sm" onclick="moveBlock('indices', 1)" title="Déplacer après">▶</button>
-          <button class="btn btn-sm" onclick="toggleWidth('indices')" title="Pleine largeur / Demi-largeur">↔</button>
+          <button class="btn btn-sm" onclick="moveBlock('indices', -1)">◀</button>
+          <button class="btn btn-sm" onclick="moveBlock('indices', 1)">▶</button>
+          <button class="btn btn-sm" onclick="toggleWidth('indices')">↔</button>
         </div>
       </div>
       <div class="widget-box" style="height: 320px;" id="tvIndicesContainer"></div>
@@ -161,26 +153,306 @@
 
   </div>
 
-  <!-- PANNEAU DE PERSONNALISATION & ÉDITION -->
   <div class="drawer-overlay" id="drawerOverlay" onclick="closeDrawerOnBg(event)">
     <div class="drawer">
       <div class="drawer-header">
-        <h2>⚙️ Configuration du Dashboard</h2>
+        <h2>⚙️ Configuration</h2>
         <button class="btn btn-sm" onclick="closeDrawer()">✕ Fermer</button>
       </div>
 
-      <!-- 1. Éditer mon portefeuille privé -->
       <div class="section-box">
-        <h3>💼 1. Mes investissements (Stocké sur cet appareil)</h3>
+        <h3>💼 1. Mes investissements (Privé)</h3>
         <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr auto; gap: 6px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">
           <span>Nom</span><span>Déposé (€)</span><span>Actuel (€)</span><span></span>
         </div>
         <div id="portfolioInputs"></div>
         <button class="btn btn-sm" style="margin-top: 6px;" onclick="addPortfolioRow()">+ Ajouter une ligne</button>
-        <p class="hint">🔒 Ces montants restent enregistrés uniquement dans votre navigateur et ne sont jamais envoyés sur GitHub.</p>
       </div>
 
-      <!-- 2. Choisir mes bourses favorites -->
       <div class="section-box">
         <h3>⭐ 2. Mes bourses favorites (Temps réel)</h3>
         <div style="display: grid; grid-template-columns: 1fr 1.2fr auto; gap: 6px; font-size: 0.72rem; color: var(--text-muted); margin-bottom: 4px;">
+          <span>Nom affiché</span><span>Code TradingView</span><span></span>
+        </div>
+        <div id="favoritesInputs"></div>
+        <button class="btn btn-sm" style="margin-top: 6px;" onclick="addFavoriteRow()">+ Ajouter une action / ETF</button>
+        <p class="hint">Exemples : <b>EURONEXT:MC</b> (LVMH), <b>NASDAQ:AAPL</b> (Apple), <b>EURONEXT:CW8</b> (ETF Monde).</p>
+      </div>
+
+      <div class="section-box">
+        <h3>🧩 3. Affichage des blocs</h3>
+        <div class="toggle-row"><span>Bloc « Mes Investissements »</span><input type="checkbox" id="chk-portfolio" style="width: auto;" checked></div>
+        <div class="toggle-row"><span>↳ Courbe 6 mois</span><input type="checkbox" id="chk-growth" style="width: auto;" checked></div>
+        <div class="toggle-row"><span>↳ Camembert</span><input type="checkbox" id="chk-pie" style="width: auto;" checked></div>
+        <div class="toggle-row"><span>Bloc « Mes Favorites »</span><input type="checkbox" id="chk-favorites" style="width: auto;" checked></div>
+        <div class="toggle-row"><span>Bloc « Grandes Bourses »</span><input type="checkbox" id="chk-indices" style="width: auto;" checked></div>
+      </div>
+
+      <button class="btn btn-primary" style="justify-content: center; padding: 12px;" onclick="saveAllConfig()">💾 Enregistrer et Appliquer</button>
+    </div>
+  </div>
+  <script>
+    var DEFAULT_STATE = {
+      theme: "dark",
+      order: Array.of("portfolio", "favorites", "indices"),
+      fullWidth: { portfolio: false, favorites: false, indices: true },
+      visible: { portfolio: true, growth: true, pie: true, favorites: true, indices: true },
+      portfolio: Array.of(
+        { nom: "ETF MSCI World", investi: 2400, actuel: 2675 },
+        { nom: "LVMH", investi: 1240, actuel: 1290 },
+        { nom: "Air Liquide", investi: 620, actuel: 674 },
+        { nom: "Liquidités", investi: 350, actuel: 350 }
+      ),
+      favorites: Array.of(
+        { d: "LVMH", s: "EURONEXT:MC" },
+        { d: "Apple", s: "NASDAQ:AAPL" },
+        { d: "Air Liquide", s: "EURONEXT:AI" },
+        { d: "NVIDIA", s: "NASDAQ:NVDA" },
+        { d: "TotalEnergies", s: "EURONEXT:TTE" }
+      )
+    };
+
+    var state = null;
+    try {
+      var saved = localStorage.getItem("cockpit_bourse_v6");
+      if (saved) state = JSON.parse(saved);
+    } catch (e) {}
+    if (!state) state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+    var chartPie = null;
+    var chartLine = null;
+
+    function persist() {
+      try { localStorage.setItem("cockpit_bourse_v6", JSON.stringify(state)); } catch (e) {}
+    }
+
+    function toggleWidth(id) {
+      state.fullWidth[id] = !state.fullWidth[id];
+      persist();
+      applyLayout();
+    }
+
+    function moveBlock(id, dir) {
+      var idx = state.order.indexOf(id);
+      var newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= state.order.length) return;
+      var tmp = state.order.at(idx);
+      state.order.splice(idx, 1);
+      state.order.splice(newIdx, 0, tmp);
+      persist();
+      applyLayout();
+    }
+
+    function toggleTheme() {
+      state.theme = (state.theme === "dark") ? "light" : "dark";
+      persist();
+      applyTheme();
+      renderPortfolio();
+      renderTradingViewWidgets();
+    }
+
+    function applyTheme() {
+      if (state.theme === "light") document.body.classList.add("light-theme");
+      else document.body.classList.remove("light-theme");
+    }
+
+    function applyLayout() {
+      var grid = document.getElementById("dashboardGrid");
+      state.order.forEach(function(id) {
+        var el = document.getElementById("block-" + id);
+        if (el) {
+          grid.appendChild(el);
+          el.classList.toggle("span-full", !!state.fullWidth[id]);
+          el.classList.toggle("hidden-block", !state.visible[id]);
+        }
+      });
+      var boxGrowth = document.getElementById("box-growth");
+      var boxPie = document.getElementById("box-pie");
+      var wrapper = document.getElementById("portfolioChartsWrapper");
+      boxGrowth.classList.toggle("hidden-block", !state.visible.growth);
+      boxPie.classList.toggle("hidden-block", !state.visible.pie);
+      wrapper.classList.toggle("single-chart", !(state.visible.growth && state.visible.pie));
+    }
+
+    function renderPortfolio() {
+      var totInv = 0, totAct = 0, labels = new Array(), values = new Array();
+      state.portfolio.forEach(function(item) {
+        totInv += Number(item.investi) || 0;
+        totAct += Number(item.actuel) || 0;
+        labels.push(item.nom);
+        values.push(Number(item.actuel) || 0);
+      });
+
+      var gain = totAct - totInv;
+      var pct = totInv > 0 ? ((gain / totInv) * 100).toFixed(1) : "0.0";
+      var sign = gain >= 0 ? "+" : "";
+
+      document.getElementById("kpiInvesti").innerText = totInv.toLocaleString("fr-FR") + " €";
+      document.getElementById("kpiActuel").innerText = totAct.toLocaleString("fr-FR") + " €";
+      var kpiGain = document.getElementById("kpiGain");
+      kpiGain.innerText = sign + gain.toLocaleString("fr-FR") + " € (" + sign + pct + "%)";
+      kpiGain.style.color = gain >= 0 ? "#10b981" : "#ef4444";
+
+      if (typeof Chart === "undefined") return;
+      var textColor = state.theme === "light" ? "#334155" : "#cbd5e1";
+      var gridColor = state.theme === "light" ? "#e2e8f0" : "#1e293b";
+      var borderColor = state.theme === "light" ? "#ffffff" : "#0f172a";
+
+      if (chartPie) chartPie.destroy();
+      chartPie = new Chart(document.getElementById("portfolioChart"), {
+        type: "doughnut",
+        data: {
+          labels: labels,
+          datasets: Array.of({
+            data: values,
+            backgroundColor: Array.of("#3b82f6", "#8b5cf6", "#10b981", "#f59e0b", "#ec4899", "#64748b"),
+            borderColor: borderColor,
+            borderWidth: 2
+          })
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom", labels: { color: textColor, boxWidth: 10, font: { size: 11 } } } }
+        }
+      });
+
+      if (chartLine) chartLine.destroy();
+      chartLine = new Chart(document.getElementById("growthChart"), {
+        type: "line",
+        data: {
+          labels: Array.of("M-5", "M-4", "M-3", "M-2", "M-1", "Actuel"),
+          datasets: Array.of(
+            {
+              label: "Valeur actuelle (€)",
+              data: Array.of(Math.round(totInv * 0.62), Math.round(totInv * 0.74), Math.round(totInv * 0.83), Math.round(totInv * 0.94), Math.round((totInv + totAct) / 2), totAct),
+              borderColor: "#10b981", backgroundColor: "rgba(16, 185, 129, 0.15)", fill: true, tension: 0.35
+            },
+            {
+              label: "Argent déposé (€)",
+              data: Array.of(Math.round(totInv * 0.60), Math.round(totInv * 0.70), Math.round(totInv * 0.80), Math.round(totInv * 0.90), totInv, totInv),
+              borderColor: "#64748b", fill: false, tension: 0
+            }
+          )
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { labels: { color: textColor, boxWidth: 10, font: { size: 11 } } } },
+          scales: {
+            x: { ticks: { color: textColor, font: { size: 10 } }, grid: { display: false } },
+            y: { ticks: { color: textColor, font: { size: 10 } }, grid: { color: gridColor } }
+          }
+        }
+      });
+    }
+
+    function renderTradingViewWidgets() {
+      var theme = state.theme;
+      var favConfig = {
+        colorTheme: theme, dateRange: "1M", showChart: true, locale: "fr", width: "100%", height: "100%",
+        isTransparent: true, showSymbolLogo: true,
+        plotLineColorGrowing: "rgba(16, 185, 129, 1)", plotLineColorFalling: "rgba(239, 68, 68, 1)",
+        belowLineFillColorGrowing: "rgba(16, 185, 129, 0.12)", belowLineFillColorFalling: "rgba(239, 68, 68, 0.12)",
+        tabs: Array.of({ title: "Mes Favorites", symbols: state.favorites })
+      };
+      var favUrl = "https://tradingview.com" + encodeURIComponent(JSON.stringify(favConfig));
+      document.getElementById("tvFavoritesContainer").innerHTML = '<iframe src="' + favUrl + '" allowtransparency="true"></iframe>';
+
+      var idxConfig = {
+        width: "100%", height: "100%",
+        symbolsGroups: Array.of({
+          name: "Indices Mondiaux",
+          symbols: Array.of(
+            { name: "INDEX:CAC40", displayName: "CAC 40 (France)" },
+            { name: "FOREXCOM:SPXUSD", displayName: "S&P 500 (États-Unis)" },
+            { name: "FOREXCOM:NSXUSD", displayName: "NASDAQ 100 (Tech US)" },
+            { name: "INDEX:SX5E", displayName: "EURO STOXX 50 (Europe)" },
+            { name: "INDEX:NKY", displayName: "NIKKEI 225 (Japon)" }
+          )
+        }),
+        showSymbolLogo: true, isTransparent: true, colorTheme: theme, locale: "fr"
+      };
+      var idxUrl = "https://tradingview.com" + encodeURIComponent(JSON.stringify(idxConfig));
+      document.getElementById("tvIndicesContainer").innerHTML = '<iframe src="' + idxUrl + '" allowtransparency="true"></iframe>';
+    }
+
+    function openDrawer() {
+      var pContainer = document.getElementById("portfolioInputs");
+      pContainer.innerHTML = "";
+      state.portfolio.forEach(function(item) { addPortfolioRow(item.nom, item.investi, item.actuel); });
+
+      var fContainer = document.getElementById("favoritesInputs");
+      fContainer.innerHTML = "";
+      state.favorites.forEach(function(fav) { addFavoriteRow(fav.d, fav.s); });
+
+      document.getElementById("chk-portfolio").checked = state.visible.portfolio;
+      document.getElementById("chk-growth").checked = state.visible.growth;
+      document.getElementById("chk-pie").checked = state.visible.pie;
+      document.getElementById("chk-favorites").checked = state.visible.favorites;
+      document.getElementById("chk-indices").checked = state.visible.indices;
+      document.getElementById("drawerOverlay").classList.add("open");
+    }
+
+    function closeDrawer() { document.getElementById("drawerOverlay").classList.remove("open"); }
+    function closeDrawerOnBg(e) { if (e.target.id === "drawerOverlay") closeDrawer(); }
+
+    function addPortfolioRow(nom, investi, actuel) {
+      var div = document.createElement("div");
+      div.className = "form-row";
+      div.innerHTML =
+        '<input type="text" placeholder="Ex: ETF Monde" value="' + (nom || "") + '">' +
+        '<input type="number" placeholder="Déposé" value="' + (investi !== undefined ? investi : "") + '">' +
+        '<input type="number" placeholder="Actuel" value="' + (actuel !== undefined ? actuel : "") + '">' +
+        '<button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>';
+      document.getElementById("portfolioInputs").appendChild(div);
+    }
+
+    function addFavoriteRow(nom, code) {
+      var div = document.createElement("div");
+      div.className = "fav-row";
+      div.innerHTML =
+        '<input type="text" placeholder="Ex: Microsoft" value="' + (nom || "") + '">' +
+        '<input type="text" placeholder="Ex: NASDAQ:MSFT" value="' + (code || "") + '">' +
+        '<button class="btn btn-sm btn-danger" onclick="this.parentElement.remove()">✕</button>';
+      document.getElementById("favoritesInputs").appendChild(div);
+    }
+
+    function saveAllConfig() {
+      var newPort = new Array();
+      document.querySelectorAll("#portfolioInputs .form-row").forEach(function(row) {
+        var inputs = row.querySelectorAll("input");
+        var nom = inputs.item(0).value.trim();
+        if (nom) newPort.push({ nom: nom, investi: parseFloat(inputs.item(1).value) || 0, actuel: parseFloat(inputs.item(2).value) || 0 });
+      });
+      if (newPort.length > 0) state.portfolio = newPort;
+
+      var newFavs = new Array();
+      document.querySelectorAll("#favoritesInputs .fav-row").forEach(function(row) {
+        var inputs = row.querySelectorAll("input");
+        var d = inputs.item(0).value.trim();
+        var s = inputs.item(1).value.trim().toUpperCase();
+        if (d && s) newFavs.push({ d: d, s: s });
+      });
+      if (newFavs.length > 0) state.favorites = newFavs;
+
+      state.visible.portfolio = document.getElementById("chk-portfolio").checked;
+      state.visible.growth = document.getElementById("chk-growth").checked;
+      state.visible.pie = document.getElementById("chk-pie").checked;
+      state.visible.favorites = document.getElementById("chk-favorites").checked;
+      state.visible.indices = document.getElementById("chk-indices").checked;
+
+      persist();
+      applyLayout();
+      renderPortfolio();
+      renderTradingViewWidgets();
+      closeDrawer();
+    }
+
+    window.addEventListener("DOMContentLoaded", function() {
+      applyTheme();
+      applyLayout();
+      renderPortfolio();
+      renderTradingViewWidgets();
+    });
+  </script>
+</body>
+</html>
