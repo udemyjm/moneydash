@@ -1,255 +1,654 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard Trading</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon Cockpit Financier</title>
+  <link href="https://googleapis.com" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0f141e;
+      --bg-card: #161d2b;
+      --bg-card-dark: #121824;
+      --border: #232d42;
+      --text-main: #f1f5f9;
+      --text-muted: #8b9bb4;
+      --accent: #3b82f6;
+      --accent-soft: #60a5fa;
+      --green: #34d399;
+      --red: #f87171;
+    }
 
-<style>
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-    font-family:Segoe UI,Tahoma,Geneva,Verdana,sans-serif;
-}
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', -apple-system, sans-serif; }
+    body { background: var(--bg-main); color: var(--text-main); min-height: 100vh; }
 
-body{
-    background:#0d1117;
-    color:#fff;
-    padding:20px;
-}
+    .workspace { width: 100%; max-width: 1600px; margin: 0 auto; display: flex; flex-direction: column; }
+    .content-area { padding: 24px 28px; }
 
-h1{
-    text-align:center;
-    margin-bottom:20px;
-}
+    .header-bar {
+      display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+      gap: 12px; margin-bottom: 24px; padding-bottom: 16px; border-bottom: 1px solid var(--border);
+    }
+    .breadcrumb { font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); font-weight: 700; }
+    .breadcrumb span { color: var(--accent-soft); }
+    .top-actions { display: flex; gap: 10px; align-items: center; }
 
-.top{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-    gap:15px;
-    margin-bottom:25px;
-}
+    .btn-primary {
+      background: #2563eb; color: #ffffff; border: 1px solid #3b82f6; padding: 8px 16px; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-primary:hover { background: #1d4ed8; }
 
-.card{
-    background:#161b22;
-    border-radius:12px;
-    padding:15px;
-    box-shadow:0 0 10px rgba(0,0,0,.3);
-}
+    .btn-secondary {
+      background: var(--bg-card); color: var(--text-main); border: 1px solid var(--border); padding: 8px 16px; border-radius: 8px;
+      font-size: 0.8rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-secondary:hover { border-color: var(--accent-soft); }
 
-.card h3{
-    margin-bottom:10px;
-}
+    .btn-dark {
+      background: var(--bg-card-dark); color: var(--text-muted); border: 1px solid var(--border); padding: 5px 10px;
+      border-radius: 6px; font-size: 0.76rem; font-weight: 600; cursor: pointer;
+    }
+    .btn-dark:hover { border-color: var(--accent-soft); color: #fff; }
 
-.price{
-    font-size:28px;
-    font-weight:bold;
-}
+    .config-drawer {
+      display: none; background: var(--bg-card); border: 1px solid var(--accent); border-radius: 12px;
+      padding: 22px; margin-bottom: 24px; box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+    }
+    .config-drawer.open { display: block; }
+    .config-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 18px; }
+    .config-col { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .config-col h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent-soft); margin-bottom: 12px; }
+    input {
+      width: 100%; padding: 8px 11px; border-radius: 6px; border: 1px solid var(--border);
+      background: var(--bg-main); color: #fff; font-size: 0.82rem; margin-bottom: 8px;
+    }
+    input:focus { outline: none; border-color: var(--accent); }
+    .mini-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; background: var(--bg-main); border-radius: 6px; margin-bottom: 6px; font-size: 0.8rem; }
 
-.positive{
-    color:#00c853;
-}
+    .modules-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    @media (max-width: 1100px) { .modules-grid { grid-template-columns: 1fr; } }
+    .col-full { grid-column: 1 / -1; }
+    .hidden { display: none !important; }
 
-.negative{
-    color:#ff5252;
-}
+    .fintech-card {
+      background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+      display: flex; flex-direction: column; position: relative; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+    .card-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+    .card-head h3 { font-size: 0.84rem; text-transform: uppercase; letter-spacing: 0.07em; color: #e2e8f0; font-weight: 700; }
+    .card-tools { display: flex; gap: 6px; align-items: center; }
 
-.section-title{
-    margin:25px 0 15px;
-}
+    .invest-overview { display: grid; grid-template-columns: 1.5fr 1fr; gap: 18px; margin-bottom: 20px; align-items: center; }
+    @media (max-width: 850px) { .invest-overview { grid-template-columns: 1fr; } }
 
-.watchlist{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:15px;
-}
+    .kpi-trio { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    @media (max-width: 600px) { .kpi-trio { grid-template-columns: 1fr; } }
 
-.stock-card{
-    background:#161b22;
-    border-radius:12px;
-    padding:15px;
-}
+    .kpi-card-mini { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+    .kpi-card-mini small { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: 0.05em; font-weight: 600; }
+    .kpi-card-mini strong { font-size: 1.32rem; font-weight: 700; margin-top: 6px; display: block; }
 
-.stock-card .ticker{
-    font-size:20px;
-    font-weight:bold;
-}
+    .donut-panel { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 10px; padding: 14px 18px; display: flex; align-items: center; justify-content: space-around; gap: 16px; }
+    .donut-legend { display: flex; flex-direction: column; gap: 6px; font-size: 0.8rem; }
+    .legend-item { display: flex; align-items: center; gap: 8px; }
+    .legend-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
 
-.stock-card .value{
-    font-size:24px;
-    margin-top:8px;
-}
+    .holdings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 16px; }
+    .holding-tile { background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+    .holding-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .holding-nums { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 0.84rem; }
 
-.stock-card .change{
-    margin-top:5px;
-}
+    .world-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(195px, 1fr)); gap: 14px; }
+    .world-card {
+      position: relative; background: var(--bg-card-dark); border: 1px solid var(--border); border-radius: 10px;
+      height: 115px; overflow: hidden; cursor: pointer; transition: all 0.15s;
+    }
+    .world-card:hover { border-color: var(--accent); transform: translateY(-2px); }
+    .world-shield { position: absolute; inset: 0; z-index: 10; }
 
-iframe{
-    border:none;
-    width:100%;
-}
-
-.chart-container{
-    margin-top:20px;
-    background:#161b22;
-    padding:10px;
-    border-radius:12px;
-}
-</style>
+    .modal-bg { position: fixed; inset: 0; background: rgba(9, 13, 22, 0.82); backdrop-filter: blur(4px); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+    .modal-bg.open { display: flex; }
+    .modal-box { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; width: 100%; max-width: 720px; padding: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+    .modal-kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 14px 0; }
+    .modal-kpi { background: var(--bg-card-dark); padding: 10px; border-radius: 8px; border: 1px solid var(--border); font-size: 0.82rem; }
+  </style>
 </head>
-
 <body>
 
-<h1>📈 Dashboard Trading</h1>
+  <div class="workspace">
+    <div class="content-area">
+      
+      <div class="header-bar">
+        <div class="breadcrumb">TABLEAU DE BORD / <span>VUE D'ENSEMBLE FINANCIÈRE</span></div>
+        <div class="top-actions">
+          <button class="btn-secondary" onclick="actualiserCoursReels()">🔄 Actualiser</button>
+          <button class="btn-primary" onclick="toggleConfig()">⚙️ Menu & Options</button>
+        </div>
+      </div>
 
-<div class="top">
+      <div class="config-drawer" id="configDrawer">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h3 style="font-size:0.95rem; text-transform:uppercase; color:var(--accent-soft);">⚙️ Panneau de Personnalisation</h3>
+          <button class="btn-dark" onclick="toggleConfig()">✕ Fermer</button>
+        </div>
 
-    <div class="card">
-        <h3>Capital</h3>
-        <div class="price" id="capital">0 €</div>
-    </div>
-
-    <div class="card">
-        <h3>Plus / Moins Value</h3>
-        <div class="price" id="pnl">0 €</div>
-    </div>
-
-    <div class="card">
-        <h3>Portefeuille</h3>
-        <div id="positions">0 positions</div>
-    </div>
-
-</div>
-
-<h2 class="section-title">⭐ Watchlist</h2>
-
-<div class="watchlist" id="watchlist"></div>
-
-<h2 class="section-title">📊 Graphique TradingView</h2>
-
-<div class="chart-container">
-
-<div class="tradingview-widget-container">
-  <div id="tradingview_chart"></div>
-</div>
-
-</div>
-
-<script src="https://s3.tradingview.com/tv.js"></script>
-
-<script>
-const actions = [
-    {symbol:"AAPL"},
-    {symbol:"MSFT"},
-    {symbol:"NVDA"},
-    {symbol:"TSLA"},
-    {symbol:"AMZN"},
-    {symbol:"META"},
-    {symbol:"GOOGL"},
-    {symbol:"BTC-USD"}
-];
-
-const portefeuille = {
-    capital:10000,
-    pnl:0,
-    positions:8
-};
-
-document.getElementById("capital").textContent =
-    portefeuille.capital.toLocaleString('fr-FR') + " €";
-
-document.getElementById("pnl").textContent =
-    portefeuille.pnl.toLocaleString('fr-FR') + " €";
-
-document.getElementById("positions").textContent =
-    portefeuille.positions + " positions";
-
-async function chargerCours(symbol){
-
-    try{
-
-        const url =
-        `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}`;
-
-        const response = await fetch(url);
-
-        const data = await response.json();
-
-        const result = data.chart.result[0];
-
-        const prix =
-        result.meta.regularMarketPrice;
-
-        const precedent =
-        result.meta.chartPreviousClose;
-
-        const variation =
-        ((prix - precedent) / precedent) * 100;
-
-        return {
-            prix:prix.toFixed(2),
-            variation:variation.toFixed(2)
-        };
-
-    }catch(e){
-
-        return {
-            prix:"--",
-            variation:"0.00"
-        };
-
-    }
-}
-
-async function afficherWatchlist(){
-
-    const container =
-    document.getElementById("watchlist");
-
-    for(const action of actions){
-
-        const cours =
-        await chargerCours(action.symbol);
-
-        const couleur =
-        cours.variation >= 0
-        ? "positive"
-        : "negative";
-
-        const card =
-        document.createElement("div");
-
-        card.className="stock-card";
-
-        card.innerHTML=`
-            <div class="ticker">${action.symbol}</div>
-            <div class="value">${cours.prix}</div>
-            <div class="change ${couleur}">
-                ${cours.variation}%
+        <div class="config-grid">
+          <div class="config-col">
+            <h4>💼 1. Ajouter un investissement</h4>
+            <input type="text" id="inNom" placeholder="Nom (ex: Apple / LVMH)">
+            <input type="text" id="inTv" placeholder="Code TradingView (ex: NASDAQ:AAPL)">
+            <input type="text" id="inYahoo" placeholder="Code Cours Auto (ex: AAPL)">
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+              <input type="number" id="inDepart" placeholder="Investi (€)">
+              <input type="number" id="inPrixAchat" placeholder="Prix d'achat">
             </div>
-        `;
+            <button class="btn-primary" style="width:100%; justify-content:center;" onclick="ajouterInvestissement()">+ Ajouter l'action</button>
+            <div id="menuListInvest" style="margin-top:10px;"></div>
+          </div>
 
-        container.appendChild(card);
+          <div class="config-col">
+            <h4>⭐ 2. Rechercher & Épingler Favoris</h4>
+            <input type="text" id="searchStock" placeholder="🔍 Rechercher (Apple, ASM, TTWO, LVMH...)" oninput="filtrerEntreprises()">
+            <div id="searchResults" style="max-height:130px; overflow-y:auto; margin-bottom:8px;"></div>
+            <div style="display:grid; grid-template-columns:1fr 1fr auto; gap:6px;">
+              <input type="text" id="freeName" placeholder="Nom" style="margin:0;">
+              <input type="text" id="freeCode" placeholder="EURONEXT:ASM" style="margin:0;">
+              <button class="btn-primary" onclick="ajouterFavoriLibre()">+</button>
+            </div>
+            <div id="menuListFav" style="margin-top:10px;"></div>
+          </div>
+
+          <div class="config-col">
+            <h4>🧩 3. Modules affichés & Sauvegarde</h4>
+            <label class="mini-row"><span>1. Mes Investissements</span><input type="checkbox" id="chk-invest" style="width:auto;margin:0;" onchange="majModules()"></label>
+            <label class="mini-row"><span>2. Favoris & Surveillance</span><input type="checkbox" id="chk-fav" style="width:auto;margin:0;" onchange="majModules()"></label>
+            <label class="mini-row"><span>3. Bourses & Actions Monde</span><input type="checkbox" id="chk-world" style="width:auto;margin:0;" onchange="majModules()"></label>
+            <div style="display:flex; gap:8px; margin-top:12px;">
+              <button class="btn-dark" style="flex:1;" onclick="exporterDonnees()">📤 Exporter</button>
+              <button class="btn-dark" style="flex:1;" onclick="importerDonnees()">📥 Importer</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modules-grid" id="modulesGrid">
+
+        <div class="fintech-card col-full" id="sec-invest">
+          <div class="card-head">
+            <h3>💼 1. Mes Investissements</h3>
+            <div class="card-tools">
+              <button class="btn-dark" onclick="deplacerBloc('invest', -1)">▲</button>
+              <button class="btn-dark" onclick="deplacerBloc('invest', 1)">▼</button>
+              <button class="btn-dark" onclick="basculerLargeur('invest')">↔</button>
+            </div>
+          </div>
+
+          <div class="invest-overview">
+            <div class="kpi-trio">
+              <div class="kpi-card-mini">
+                <small>Investissement Départ</small>
+                <strong id="kpiDepart">0,00 €</strong>
+              </div>
+              <div class="kpi-card-mini">
+                <small>Valeur Actuelle</small>
+                <strong id="kpiActuel">0,00 €</strong>
+              </div>
+              <div class="kpi-card-mini">
+                <small>Plus / Moins-Value</small>
+                <strong id="kpiGain">0,00 €</strong>
+              </div>
+            </div>
+
+            <div class="donut-panel">
+              <div id="donutSvgContainer" style="width: 115px; height: 115px; flex-shrink: 0;"></div>
+              <div class="donut-legend" id="donutLegend"></div>
+            </div>
+          </div>
+
+          <div class="holdings-grid" id="holdingsGrid"></div>
+        </div>
+
+        <div class="fintech-card" id="sec-fav">
+          <div class="card-head">
+            <h3>⭐ 2. Favoris & Surveillance</h3>
+            <div class="card-tools">
+              <button class="btn-dark" onclick="deplacerBloc('fav', -1)">▲</button>
+              <button class="btn-dark" onclick="deplacerBloc('fav', 1)">▼</button>
+              <button class="btn-dark" onclick="basculerLargeur('fav')">↔</button>
+            </div>
+          </div>
+          <div id="favBadgesBar" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;"></div>
+          <div id="tvFavBox" style="height:365px; border-radius:10px; overflow:hidden; border:1px solid var(--border);"></div>
+        </div>
+
+        <div class="fintech-card" id="sec-world">
+          <div class="card-head">
+            <h3>🌍 3. Bourses & Actions Monde</h3>
+            <div class="card-tools">
+              <button class="btn-dark" onclick="deplacerBloc('world', -1)">▲</button>
+              <button class="btn-dark" onclick="deplacerBloc('world', 1)">▼</button>
+              <button class="btn-dark" onclick="basculerLargeur('world')">↔</button>
+            </div>
+          </div>
+          <div class="world-strip" id="worldStrip"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="worldModal" onclick="if(event.target.id==='worldModal') closeWorldModal()">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+        <h3 id="mTitle" style="color:var(--accent-soft);">Détail</h3>
+        <button class="btn-dark" onclick="closeWorldModal()">✕ Fermer</button>
+      </div>
+      <div class="modal-kpis">
+        <div class="modal-kpi"><small style="color:var(--text-muted);">Place / Secteur</small><br><strong id="mZone">--</strong></div>
+        <div class="modal-kpi"><small style="color:var(--text-muted);">Code Boursier</small><br><strong id="mCode">--</strong></div>
+        <div class="modal-kpi"><small style="color:var(--text-muted);">Composition</small><br><strong id="mRole">--</strong></div>
+      </div>
+      <p id="mDesc" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:14px;"></p>
+      <div id="mSymbolInfoBox" style="height:210px; border-radius:10px; overflow:hidden; border:1px solid var(--border);"></div>
+    </div>
+  </div>
+
+  <div class="modal-bg" id="editInvestModal" onclick="if(event.target.id==='editInvestModal') closeEditModal()">
+    <div class="modal-box" style="max-width:440px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+        <h3 style="color:var(--accent-soft);">✏️ Modifier l'investissement</h3>
+        <button class="btn-dark" onclick="closeEditModal()">✕</button>
+      </div>
+      <input type="hidden" id="editIndex">
+      <label style="font-size:0.76rem; color:var(--text-muted);">Nom affiché</label>
+      <input type="text" id="editNom">
+      <label style="font-size:0.76rem; color:var(--text-muted);">Code TradingView</label>
+      <input type="text" id="editTv">
+      <label style="font-size:0.76rem; color:var(--text-muted);">Code Cours Auto (Yahoo)</label>
+      <input type="text" id="editYahoo">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px;">
+        <div>
+          <label style="font-size:0.76rem; color:var(--text-muted);">Montant investi (€)</label>
+          <input type="number" id="editDepart">
+        </div>
+        <div>
+          <label style="font-size:0.76rem; color:var(--text-muted);">Prix d'achat unitaire</label>
+          <input type="number" id="editPrixAchat">
+        </div>
+      </div>
+      <button class="btn-primary" style="width:100%; justify-content:center; margin-top:8px;" onclick="sauvegarderModification()">💾 Enregistrer les modifications</button>
+    </div>
+  </div>
+  <script>
+    var CATALOGUE = Array.of(
+      { nom: "Apple", tv: "NASDAQ:AAPL", yahoo: "AAPL", info: "Tech • USA" },
+      { nom: "Take-Two (TTWO)", tv: "NASDAQ:TTWO", yahoo: "TTWO", info: "Jeux vidéo • USA" },
+      { nom: "ASM International", tv: "EURONEXT:ASM", yahoo: "ASM.AS", info: "Semi-conducteurs • NL" },
+      { nom: "LVMH", tv: "EURONEXT:MC", yahoo: "MC.PA", info: "Luxe • Paris" },
+      { nom: "NVIDIA", tv: "NASDAQ:NVDA", yahoo: "NVDA", info: "IA & Puces • USA" },
+      { nom: "Air Liquide", tv: "EURONEXT:AI", yahoo: "AI.PA", info: "Industrie • Paris" },
+      { nom: "TotalEnergies", tv: "EURONEXT:TTE", yahoo: "TTE.PA", info: "Énergie • Paris" },
+      { nom: "Microsoft", tv: "NASDAQ:MSFT", yahoo: "MSFT", info: "Logiciel • USA" },
+      { nom: "ETF MSCI World (CW8)", tv: "EURONEXT:CW8", yahoo: "CW8.PA", info: "ETF Monde • Paris" },
+      { nom: "Tesla", tv: "NASDAQ:TSLA", yahoo: "TSLA", info: "Auto • USA" }
+    );
+
+    var MONDE = Array.of(
+      { nom: "CAC 40", s: "INDEX:CAC40", zone: "🇫🇷 France (Paris)", role: "40 grandes sociétés françaises", desc: "Indice phare de la Bourse de Paris regroupant LVMH, L'Oréal, Airbus et TotalEnergies." },
+      { nom: "S&P 500", s: "FOREXCOM:SPXUSD", zone: "🇺🇸 États-Unis", role: "500 plus grandes sociétés US", desc: "Référence mondiale mesurant la performance des 500 plus grandes entreprises américaines." },
+      { nom: "Nasdaq 100", s: "FOREXCOM:NSXUSD", zone: "🇺🇸 États-Unis (Tech)", role: "100 géants technologiques", desc: "Regroupe les plus grandes valeurs technologiques américaines (Apple, NVIDIA, Microsoft)." },
+      { nom: "Apple", s: "NASDAQ:AAPL", zone: "🇺🇸 NASDAQ (Tech)", role: "Électronique & Services", desc: "Concepteur de l'iPhone, du Mac et de services numériques mondiaux." },
+      { nom: "Take-Two (TTWO)", s: "NASDAQ:TTWO", zone: "🇺🇸 NASDAQ (Jeux)", role: "Éditeur Rockstar / 2K", desc: "Éditeur mondial de jeux vidéo propriétaire des franchises Grand Theft Auto et NBA 2K." },
+      { nom: "ASM International", s: "EURONEXT:ASM", zone: "🇳🇱 Euronext Amsterdam", role: "Équipements semi-conducteurs", desc: "Leader européen des équipements de dépôt de couches minces pour la fabrication de puces." }
+    );
+
+    var DEFAULT_STATE = {
+      ordre: Array.of("invest", "fav", "world"),
+      pleineLargeur: { invest: true, fav: false, world: false },
+      visible: { invest: true, fav: true, world: true },
+      investissements: Array.of(
+        { nom: "Apple", tv: "NASDAQ:AAPL", yahoo: "AAPL", depart: 1500, prixAchat: 220, prixActuel: 245 },
+        { nom: "Take-Two (TTWO)", tv: "NASDAQ:TTWO", yahoo: "TTWO", depart: 1200, prixAchat: 210, prixActuel: 225 },
+        { nom: "ASM International", tv: "EURONEXT:ASM", yahoo: "ASM.AS", depart: 1800, prixAchat: 580, prixActuel: 620 }
+      ),
+      favoris: Array.of(
+        { d: "Apple", s: "NASDAQ:AAPL" },
+        { d: "Take-Two", s: "NASDAQ:TTWO" },
+        { d: "ASM", s: "EURONEXT:ASM" },
+        { d: "LVMH", s: "EURONEXT:MC" },
+        { d: "NVIDIA", s: "NASDAQ:NVDA" }
+      )
+    };
+
+    var state = null;
+    try {
+      var raw = localStorage.getItem("fintech_cockpit_v8");
+      if (raw) state = JSON.parse(raw);
+    } catch (e) {}
+    if (!state) state = JSON.parse(JSON.stringify(DEFAULT_STATE));
+
+    function save() {
+      try { localStorage.setItem("fintech_cockpit_v8", JSON.stringify(state)); } catch (e) {}
     }
-}
 
-afficherWatchlist();
+    function buildTvUrl(symbolsArr, h) {
+      var payload = {
+        title: "Cotations",
+        tabs: Array.of({ title: "Marché", symbols: symbolsArr }),
+        width: "100%",
+        height: String(h),
+        colorTheme: "dark"
+      };
+      return "https://tradingview.com" + encodeURIComponent(JSON.stringify(payload));
+    }
 
-new TradingView.widget({
-    "autosize": true,
-    "symbol": "NASDAQ:AAPL",
-    "interval": "D",
-    "timezone": "Europe/Paris",
-    "theme": "dark",
-    "style": "1",
-    "locale": "fr",
-    "toolbar_bg": "#0d1117",
-    "enable_publishing": false,
-    "allow_symbol_change": true,
-    "container_id": "tradingview_chart"
-});
-</script>
+    function toggleConfig() {
+      var d = document.getElementById("configDrawer");
+      d.classList.toggle("open");
+      if (d.classList.contains("open")) {
+        rendreListesMenu();
+        filtrerEntreprises();
+      }
+    }
 
+    function deplacerBloc(id, dir) {
+      var idx = state.ordre.indexOf(id);
+      var cible = idx + dir;
+      if (cible < 0 || cible >= state.ordre.length) return;
+      var el = state.ordre.at(idx);
+      state.ordre.splice(idx, 1);
+      state.ordre.splice(cible, 0, el);
+      save();
+      appliquerGrille();
+    }
+
+    function basculerLargeur(id) {
+      state.pleineLargeur[id] = !state.pleineLargeur[id];
+      save();
+      appliquerGrille();
+    }
+
+    function majModules() {
+      state.visible.invest = document.getElementById("chk-invest").checked;
+      state.visible.fav = document.getElementById("chk-fav").checked;
+      state.visible.world = document.getElementById("chk-world").checked;
+      save();
+      appliquerGrille();
+    }
+
+    function appliquerGrille() {
+      var grid = document.getElementById("modulesGrid");
+      state.ordre.forEach(function(id) {
+        var el = document.getElementById("sec-" + id);
+        if (el) {
+          grid.appendChild(el);
+          el.classList.toggle("col-full", !!state.pleineLargeur[id]);
+          el.classList.toggle("hidden", !state.visible[id]);
+        }
+      });
+      document.getElementById("chk-invest").checked = state.visible.invest;
+      document.getElementById("chk-fav").checked = state.visible.fav;
+      document.getElementById("chk-world").checked = state.visible.world;
+    }
+
+    function rendreInvestissements() {
+      var grid = document.getElementById("holdingsGrid");
+      grid.innerHTML = "";
+      var totDep = 0;
+      var totAct = 0;
+      var partsData = new Array();
+      var palette = Array.of("#3b82f6", "#10b981", "#6366f1", "#f59e0b", "#64748b", "#0ea5e9");
+
+      state.investissements.forEach(function(inv, i) {
+        var parts = inv.prixAchat > 0 ? (inv.depart / inv.prixAchat) : 0;
+        var valAct = parts * inv.prixActuel;
+        var diff = valAct - inv.depart;
+        var pct = inv.depart > 0 ? (diff / inv.depart) * 100 : 0;
+
+        totDep += inv.depart;
+        totAct += valAct;
+        partsData.push({ nom: inv.nom, val: valAct, color: palette.at(i % palette.length) });
+
+        var tvUrl = buildTvUrl(Array.of({ s: inv.tv, d: inv.nom }), 115);
+        var col = diff >= 0 ? "#34d399" : "#f87171";
+        var sgn = diff >= 0 ? "+" : "";
+
+        grid.innerHTML +=
+          '<div class="holding-tile">' +
+            '<div class="holding-top">' +
+              '<div><strong style="font-size:0.92rem;">' + inv.nom + '</strong> <small style="color:var(--text-muted);font-size:0.72rem;">(' + inv.tv + ')</small></div>' +
+              '<div style="display:flex;gap:6px;">' +
+                '<button class="btn-dark" onclick="ouvrirEdition(' + i + ')" title="Modifier">✏️</button>' +
+                '<button class="btn-dark" style="color:#f87171;" onclick="supprimerInvestissement(' + i + ')" title="Supprimer">✕</button>' +
+              '</div>' +
+            '</div>' +
+            '<div style="height:115px; border-radius:8px; overflow:hidden; border:1px solid var(--border);"><iframe src="' + tvUrl + '" width="100%" height="115" frameborder="0"></iframe></div>' +
+            '<div class="holding-nums">' +
+              '<div><small style="color:var(--text-muted);display:block;font-size:0.7rem;">INVESTI DÉPART</small><strong>' + inv.depart.toFixed(2) + ' €</strong></div>' +
+              '<div style="text-align:right;"><small style="color:var(--text-muted);display:block;font-size:0.7rem;">COÛT / VALEUR ACTUELLE</small><strong style="color:' + col + ';">' + valAct.toFixed(2) + ' € (' + sgn + pct.toFixed(1) + '%)</strong></div>' +
+            '</div>' +
+          '</div>';
+      });
+
+      var gTot = totAct - totDep;
+      var gPct = totDep > 0 ? (gTot / totDep) * 100 : 0;
+      var sTot = gTot >= 0 ? "+" : "";
+
+      document.getElementById("kpiDepart").innerText = totDep.toFixed(2) + " €";
+      document.getElementById("kpiActuel").innerText = totAct.toFixed(2) + " €";
+      var elG = document.getElementById("kpiGain");
+      elG.innerText = sTot + gTot.toFixed(2) + " € (" + sTot + gPct.toFixed(1) + "%)";
+      elG.style.color = gTot >= 0 ? "#34d399" : "#f87171";
+
+      var legendBox = document.getElementById("donutLegend");
+      legendBox.innerHTML = "";
+      var svgParts = '<svg viewBox="0 0 36 36" style="width:100%;height:100%;transform:rotate(-90deg);">' +
+        '<circle cx="18" cy="18" r="15.915" fill="transparent" stroke="#232d42" stroke-width="3.8"></circle>';
+
+      var cumulPct = 0;
+      partsData.forEach(function(p) {
+        var share = totAct > 0 ? (p.val / totAct) * 100 : 0;
+        svgParts += '<circle cx="18" cy="18" r="15.915" fill="transparent" stroke="' + p.color + '" stroke-width="3.8" stroke-dasharray="' + share.toFixed(2) + ' ' + (100 - share).toFixed(2) + '" stroke-dashoffset="-' + cumulPct.toFixed(2) + '"></circle>';
+        cumulPct += share;
+
+        legendBox.innerHTML += '<div class="legend-item"><span class="legend-dot" style="background:' + p.color + ';"></span><span>' + p.nom + ' <strong>(' + share.toFixed(0) + '%)</strong></span></div>';
+      });
+      svgParts += '</svg>';
+      document.getElementById("donutSvgContainer").innerHTML = svgParts;
+    }
+    function ouvrirEdition(index) {
+      var inv = state.investissements.at(index);
+      document.getElementById("editIndex").value = index;
+      document.getElementById("editNom").value = inv.nom;
+      document.getElementById("editTv").value = inv.tv;
+      document.getElementById("editYahoo").value = inv.yahoo || "";
+      document.getElementById("editDepart").value = inv.depart;
+      document.getElementById("editPrixAchat").value = inv.prixAchat;
+      document.getElementById("editInvestModal").classList.add("open");
+    }
+
+    function closeEditModal() {
+      document.getElementById("editInvestModal").classList.remove("open");
+    }
+
+    function sauvegarderModification() {
+      var idx = parseInt(document.getElementById("editIndex").value);
+      var inv = state.investissements.at(idx);
+      inv.nom = document.getElementById("editNom").value.trim() || inv.nom;
+      inv.tv = document.getElementById("editTv").value.trim().toUpperCase() || inv.tv;
+      inv.yahoo = document.getElementById("editYahoo").value.trim().toUpperCase();
+      inv.depart = parseFloat(document.getElementById("editDepart").value) || 0;
+      inv.prixAchat = parseFloat(document.getElementById("editPrixAchat").value) || 100;
+      save();
+      closeEditModal();
+      rendreInvestissements();
+      rendreListesMenu();
+      actualiserCoursReels();
+    }
+
+    function ajouterInvestissement() {
+      var nom = document.getElementById("inNom").value.trim();
+      var tv = document.getElementById("inTv").value.trim().toUpperCase();
+      var yahoo = document.getElementById("inYahoo").value.trim().toUpperCase();
+      var depart = parseFloat(document.getElementById("inDepart").value) || 0;
+      var prixAchat = parseFloat(document.getElementById("inPrixAchat").value) || 100;
+
+      if (!nom || !tv || depart <= 0) return alert("Remplissez le nom, le code TradingView et le montant investi.");
+
+      state.investissements.push({ nom: nom, tv: tv, yahoo: yahoo, depart: depart, prixAchat: prixAchat, prixActuel: prixAchat });
+      save();
+      rendreInvestissements();
+      rendreListesMenu();
+      actualiserCoursReels();
+
+      document.getElementById("inNom").value = "";
+      document.getElementById("inTv").value = "";
+      document.getElementById("inYahoo").value = "";
+      document.getElementById("inDepart").value = "";
+      document.getElementById("inPrixAchat").value = "";
+    }
+
+    function supprimerInvestissement(i) {
+      state.investissements.splice(i, 1);
+      save();
+      rendreInvestissements();
+      rendreListesMenu();
+    }
+
+    async function actualiserCoursReels() {
+      for (var i = 0; i < state.investissements.length; i++) {
+        var inv = state.investissements.at(i);
+        if (!inv.yahoo) continue;
+        try {
+          var target = "https://yahoo.com" + encodeURIComponent(inv.yahoo) + "?interval=1d&range=1d";
+          var res = await fetch("https://allorigins.win" + encodeURIComponent(target));
+          var json = await res.json();
+          var parsed = JSON.parse(json.contents);
+          var prix = parsed.chart.result.at(0).meta.regularMarketPrice;
+          if (prix && prix > 0) inv.prixActuel = prix;
+        } catch (e) {}
+      }
+      save();
+      rendreInvestissements();
+    }
+
+    function rendreFavoris() {
+      var bar = document.getElementById("favBadgesBar");
+      bar.innerHTML = "";
+      state.favoris.forEach(function(f, idx) {
+        bar.innerHTML += '<span style="background:var(--bg-card-dark); border:1px solid var(--border); color:#e2e8f0; padding:4px 12px; border-radius:999px; font-size:0.75rem; font-weight:600;">★ ' + f.d + ' <b style="cursor:pointer; margin-left:4px; color:#f87171;" onclick="supprimerFavori(' + idx + ')">✕</b></span>';
+      });
+      var url = buildTvUrl(state.favoris, 365);
+      document.getElementById("tvFavBox").innerHTML = '<iframe src="' + url + '" width="100%" height="365" frameborder="0"></iframe>';
+    }
+
+    function filtrerEntreprises() {
+      var q = document.getElementById("searchStock").value.toLowerCase();
+      var box = document.getElementById("searchResults");
+      box.innerHTML = "";
+      CATALOGUE.forEach(function(c) {
+        if (c.nom.toLowerCase().includes(q) || c.tv.toLowerCase().includes(q) || c.info.toLowerCase().includes(q)) {
+          box.innerHTML +=
+            '<div class="mini-row">' +
+              '<span><strong>' + c.nom + '</strong> <small style="color:var(--text-muted);">(' + c.info + ')</small></span>' +
+              '<button class="btn-primary" style="padding:3px 10px; font-size:0.72rem;" onclick="ajouterFavori(\'' + c.nom + '\', \'' + c.tv + '\')">+ Favori</button>' +
+            '</div>';
+        }
+      });
+    }
+
+    function ajouterFavori(nom, code) {
+      state.favoris.unshift({ d: nom, s: code });
+      save();
+      rendreFavoris();
+      rendreListesMenu();
+    }
+
+    function ajouterFavoriLibre() {
+      var nom = document.getElementById("freeName").value.trim();
+      var code = document.getElementById("freeCode").value.trim().toUpperCase();
+      if (!nom || !code) return;
+      ajouterFavori(nom, code);
+      document.getElementById("freeName").value = "";
+      document.getElementById("freeCode").value = "";
+    }
+
+    function supprimerFavori(idx) {
+      state.favoris.splice(idx, 1);
+      save();
+      rendreFavoris();
+      rendreListesMenu();
+    }
+
+    function rendreListesMenu() {
+      var lInv = document.getElementById("menuListInvest");
+      lInv.innerHTML = "";
+      state.investissements.forEach(function(inv, i) {
+        lInv.innerHTML += '<div class="mini-row"><span>' + inv.nom + ' (' + inv.depart + ' €)</span><div><button class="btn-dark" style="padding:2px 7px;margin-right:4px;" onclick="ouvrirEdition(' + i + ')">✏️</button><button class="btn-dark" style="color:#f87171;padding:2px 7px;" onclick="supprimerInvestissement(' + i + ')">✕</button></div></div>';
+      });
+
+      var lFav = document.getElementById("menuListFav");
+      lFav.innerHTML = "";
+      state.favoris.forEach(function(f, i) {
+        lFav.innerHTML += '<div class="mini-row"><span>' + f.d + ' (' + f.s + ')</span><button class="btn-dark" style="color:#f87171;padding:2px 8px;" onclick="supprimerFavori(' + i + ')">✕</button></div>';
+      });
+    }
+
+    function rendreMonde() {
+      var box = document.getElementById("worldStrip");
+      box.innerHTML = "";
+      MONDE.forEach(function(m, idx) {
+        var sqUrl = buildTvUrl(Array.of({ s: m.s, d: m.nom }), 115);
+        box.innerHTML +=
+          '<div class="world-card" onclick="openWorldModal(' + idx + ')">' +
+            '<div class="world-shield" title="Cliquer pour ouvrir les détails"></div>' +
+            '<iframe src="' + sqUrl + '" width="100%" height="115" frameborder="0"></iframe>' +
+          '</div>';
+      });
+    }
+
+    function openWorldModal(idx) {
+      var m = MONDE.at(idx);
+      document.getElementById("mTitle").innerText = "📊 " + m.nom;
+      document.getElementById("mZone").innerText = m.zone;
+      document.getElementById("mCode").innerText = m.s;
+      document.getElementById("mRole").innerText = m.role;
+      document.getElementById("mDesc").innerText = m.desc;
+
+      var url = buildTvUrl(Array.of({ s: m.s, d: m.nom }), 210);
+      document.getElementById("mSymbolInfoBox").innerHTML = '<iframe src="' + url + '" width="100%" height="210" frameborder="0"></iframe>';
+      document.getElementById("worldModal").classList.add("open");
+    }
+
+    function closeWorldModal() {
+      document.getElementById("worldModal").classList.remove("open");
+      document.getElementById("mSymbolInfoBox").innerHTML = "";
+    }
+
+    function exporterDonnees() {
+      prompt("Copiez votre code de sauvegarde :", btoa(unescape(encodeURIComponent(JSON.stringify(state)))));
+    }
+
+    function importerDonnees() {
+      var code = prompt("Collez votre code de sauvegarde :");
+      if (!code) return;
+      try {
+        state = JSON.parse(decodeURIComponent(escape(atob(code))));
+        save();
+        init();
+      } catch (e) { alert("Code invalide."); }
+    }
+
+    function init() {
+      appliquerGrille();
+      rendreInvestissements();
+      rendreFavoris();
+      rendreMonde();
+      actualiserCoursReels();
+    }
+
+    window.addEventListener("DOMContentLoaded", init);
+  </script>
 </body>
 </html>
