@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Trader — Dashboard de suivi boursier</title>
+<!-- GridStack : glisser-déposer + redimensionnement des panneaux (CDN gratuit, rien à installer) -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack.min.css">
+<script src="https://cdn.jsdelivr.net/npm/gridstack@10.3.1/dist/gridstack-all.js"></script>
+<style>
+/* ============ THÈMES ============ */
+:root{
+  --bg:#0a0c11; --panel:#11141b; --panel2:#181c26; --line:#222735;
+  --text:#e8ebf2; --muted:#8b93a7; --accent:#2f5bff; --accent2:#1b3fd1;
+  --up:#22ab94; --down:#f7525f; --radius:16px;
+}
+:root[data-theme="light"]{
+  --bg:#eef1f7; --panel:#ffffff; --panel2:#f3f5fa; --line:#e0e5ee;
+  --text:#151a27; --muted:#6a7287;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--text);font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,sans-serif;min-height:100vh}
+button,input,select{font:inherit;color:inherit}
+.muted{color:var(--muted)}
+.up{color:var(--up)} .down{color:var(--down)}
+
+/* ============ BARRE DU HAUT ============ */
+.topbar{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:14px;padding:12px 20px;
+  background:color-mix(in srgb,var(--bg) 85%,transparent);backdrop-filter:blur(12px);border-bottom:1px solid var(--line)}
+.logo{display:flex;align-items:center;gap:10px;font-weight:700;font-size:20px;letter-spacing:.2px}
+.logo i{width:34px;height:34px;border-radius:10px;background:var(--accent);display:grid;place-items:center}
+.logo svg{width:18px;height:18px;fill:#fff}
+.search{flex:1;max-width:520px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:0 12px;margin-left:auto}
+.search svg{width:16px;height:16px;stroke:var(--muted);fill:none;stroke-width:2;flex:none}
+.search input{flex:1;background:none;border:0;outline:0;padding:10px 0;min-width:0}
+.top-right{display:flex;align-items:center;gap:8px;position:relative}
+.btn{border:1px solid var(--line);background:var(--panel);border-radius:10px;padding:8px 14px;cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{background:var(--accent2)}
+.btn.ghost{background:transparent}
+.btn.sm{padding:5px 10px;font-size:12.5px;border-radius:8px}
+.btn.danger{color:var(--down)}
+.icon{border:0;background:transparent;cursor:pointer;width:28px;height:28px;border-radius:8px;display:inline-grid;place-items:center;color:var(--muted)}
+.icon:hover{background:var(--panel2);color:var(--text)}
+.icon svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+
+/* Menu déroulant */
+.menu-pop{position:absolute;top:calc(100% + 8px);right:0;width:300px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:8px;
+  box-shadow:0 18px 50px rgba(0,0,0,.35);display:none;z-index:60}
+.menu-pop.open{display:block}
+.menu-pop .mh{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:10px 10px 4px}
+.menu-pop button{display:block;width:100%;text-align:left;background:none;border:0;padding:8px 10px;border-radius:8px;cursor:pointer}
+.menu-pop button:hover{background:var(--panel2)}
+
+/* ============ GRILLE & PANNEAUX ============ */
+.wrap{padding:8px 12px 20px}
+.grid-stack>.grid-stack-item>.grid-stack-item-content{overflow:hidden;border-radius:var(--radius);inset:0}
+.panel{height:100%;display:flex;flex-direction:column;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+.panel-head{display:flex;align-items:center;gap:10px;padding:12px 16px;cursor:grab;user-select:none;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.panel-head h3{margin:0;font-size:15px;font-weight:600;display:flex;align-items:center;gap:8px;margin-right:auto}
+.panel-head h3 svg{width:16px;height:16px;fill:none;stroke:var(--accent);stroke-width:2}
+.panel-head:active{cursor:grabbing}
+.panel-head .tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;cursor:default}
+.panel-body{flex:1;min-height:0;overflow:auto;padding:14px}
+.grid-stack-static .panel-head{cursor:default}
+.panel.tape{flex-direction:row;align-items:stretch}
+.panel.tape .panel-head{border:0;border-right:1px solid var(--line);padding:0 6px;width:26px;flex:none;justify-content:center}
+.panel.tape .panel-head svg{width:14px;height:14px;fill:var(--muted)}
+.panel.tape .panel-body{padding:0;overflow:hidden}
+body.dragging iframe{pointer-events:none}
+.grid-stack>.grid-stack-item>.ui-resizable-se{filter:invert(.5);opacity:.6}
+
+/* Champs du panneau */
+.mini-input,.mini-select{background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:6px 10px;outline:0;min-width:0}
+.mini-input:focus,.mini-select:focus{border-color:var(--accent)}
+.seg{display:inline-flex;background:var(--panel2);border-radius:9px;padding:3px}
+.seg button{border:0;background:none;padding:5px 12px;border-radius:7px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--accent);color:#fff}
+
+/* ============ RÉSUMÉ ============ */
+.sum-card{background:linear-gradient(135deg,#1a47e6,#3b6bff);color:#fff;border-radius:14px;padding:16px 18px}
+.sum-card .lbl{opacity:.75;font-size:12px}
+.sum-card .big{font-size:30px;font-weight:700;margin:2px 0 10px;letter-spacing:-.5px}
+.sum-row{display:flex;gap:22px;flex-wrap:wrap}
+.sum-row b{display:block;font-size:15px}
+.sum-card .up,.sum-card .down{color:#fff}
+.chip{display:inline-block;padding:1px 8px;border-radius:99px;font-size:12px;font-weight:600;background:rgba(255,255,255,.2)}
+.sum{display:flex;flex-wrap:wrap;gap:16px;align-items:stretch}
+.sum-card{flex:1 1 260px}
+.donut-wrap{flex:1 1 260px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.sum .note{flex-basis:100%;margin:0}
+.donut-wrap svg{width:130px;height:130px;transform:rotate(-90deg);flex:none}
+.donut-wrap ul{list-style:none;margin:0;padding:0;flex:1;min-width:130px;font-size:13px}
+.donut-wrap li{display:flex;align-items:center;gap:8px;padding:3px 0}
+.donut-wrap li i{width:10px;height:10px;border-radius:3px;flex:none}
+.donut-wrap li span{margin-left:auto;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);margin:14px 0 0}
+
+/* ============ PORTEFEUILLE ============ */
+.pf-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.pcard{background:var(--panel2);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
+.pcard.up{border-top-color:var(--up)} .pcard.down{border-top-color:var(--down)}
+.pc-head{display:flex;align-items:center;gap:8px}
+.pc-name{font-weight:600}
+.pc-tick{font-size:12px;color:var(--muted)}
+.pc-badge{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+.pc-tools{display:flex}
+.pc-chart{height:210px;border-radius:10px;overflow:hidden}
+.pc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pc-stats span{display:block;font-size:11px;color:var(--muted)}
+.pc-stats b{font-size:14px}
+.pc-price{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--muted)}
+.pc-price input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 9px;outline:0;color:var(--text)}
+.pc-price input:focus{border-color:var(--accent)}
+.pc-price input:disabled{opacity:.6}
+.pc-badge.warn{color:#f5a623;border-color:#f5a623}
+.warn-note{color:#f5a623}
+.empty{padding:40px 10px;text-align:center;color:var(--muted)}
+
+/* ============ FAVORIS ============ */
+.frow{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:10px}
+.frow.drop-before{box-shadow:0 -3px 0 var(--accent)} .frow.drop-after{box-shadow:0 3px 0 var(--accent)}
+.frow.dragged{opacity:.4}
+.f-top{display:flex;align-items:center;gap:8px}
+.f-grip{cursor:grab;color:var(--muted);display:grid;place-items:center;width:22px}
+.f-grip svg{width:14px;height:14px;fill:var(--muted)}
+.f-info{flex:1;min-width:0;cursor:pointer}
+.f-info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.f-info small{color:var(--muted)}
+.f-quote{height:92px;margin-top:4px;overflow:hidden}
+
+/* ============ MARCHÉS ============ */
+.mk-tools{display:none;gap:8px;align-items:center;flex-wrap:wrap}
+[data-view="tiles"] .mk-tiles-tools,[data-view="heat"] .mk-heat-tools{display:flex}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
+.tile{position:relative;height:124px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s}
+.tile:hover{border-color:var(--accent);transform:translateY(-2px)}
+.tile .w{height:100%}
+.tile-hit{position:absolute;inset:0;background:transparent;border:0;cursor:pointer}
+.tile-open{display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent);cursor:pointer}
+.heat{height:100%;min-height:420px}
+.count{font-size:12px;color:var(--muted);margin:0 0 10px}
+
+/* ============ PIED DE PAGE ============ */
+.foot{padding:4px 22px 24px;color:var(--muted);font-size:12px;display:flex;gap:6px;flex-wrap:wrap}
+.foot a{color:var(--accent)}
+
+/* ============ DIALOGUES ============ */
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:18px;padding:0;max-width:96vw}
+dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
+.dlg-form{padding:22px;width:min(480px,92vw);display:flex;flex-direction:column;gap:12px}
+.dlg-form h2{margin:0 0 4px;font-size:18px}
+.dlg-form label{display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--muted)}
+.dlg-form input,.dlg-form select{background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:9px 11px;outline:0;color:var(--text);font-size:14px}
+.dlg-form input:focus,.dlg-form select:focus{border-color:var(--accent)}
+.dlg-form .check{flex-direction:row;align-items:center;gap:10px;color:var(--text);font-size:14px}
+.dlg-form .check input{width:auto}
+.dlg-form small{color:var(--muted);font-size:12px}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.dlg-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:6px}
+.pick-item{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;cursor:pointer}
+.pick-item:hover{border-color:var(--accent)}
+.pick-item small{color:var(--muted)}
+#pick-list{max-height:50vh;overflow:auto}
+
+#dlg-pop{width:min(1120px,96vw);height:92vh}
+.pop{display:flex;flex-direction:column;height:100%}
+.pop-head{display:flex;align-items:center;gap:10px;padding:14px 20px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.pop-head h2{margin:0;font-size:19px}
+.pop-head small{color:var(--muted)}
+.pop-head .sp{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pop-body{flex:1;overflow:auto;padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pop-body>div{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel2)}
+.pop-info{grid-column:1/-1;height:230px}
+.pop-chart{grid-column:1/-1;height:440px}
+.pop-profile,.pop-news{height:420px}
+@media(max-width:800px){.pop-body{grid-template-columns:1fr}.row3{grid-template-columns:1fr}}
+
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel);border:1px solid var(--line);padding:10px 18px;border-radius:12px;opacity:0;transition:.25s;z-index:200;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.toast.show{opacity:1;transform:translateX(-50%)}
+@media(max-width:700px){.topbar{flex-wrap:wrap}.search{order:3;max-width:none;flex-basis:100%;margin:0}}
+</style>
+</head>
+<body>
+
+<!-- ============ BARRE DU HAUT ============ -->
+<header class="topbar">
+  <div class="logo"><i><svg viewBox="0 0 24 24"><path d="M4 10h3v10H4zM10 4h3v16h-3zM16 8h3v12h-3z"/></svg></i>Trader</div>
+  <label class="search">
+    <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="gsearch" list="symlist" placeholder="Rechercher une action : nom ou symbole (ex : NASDAQ:AAPL, EURONEXT:MC)…" autocomplete="off">
+  </label>
+  <div class="top-right">
+    <button class="btn icon-only" id="btn-theme" title="Changer de thème">◐</button>
+    <button class="btn primary" id="btn-menu">☰ Menu ▾</button>
+    <div class="menu-pop" id="menu-pop">
+      <div class="mh">Gestion des actions</div>
+      <button data-m="pos-add">Ajouter au portefeuille</button>
+      <button data-m="pos-edit">Modifier un investissement</button>
+      <button data-m="pos-del">Supprimer un investissement</button>
+      <button data-m="fav-add">Ajouter aux favoris</button>
+      <button data-m="fav-del">Retirer des favoris</button>
+      <div class="mh">Gestion de l'affichage</div>
+      <button data-m="display">Modules, tuiles, thème…</button>
+      <button data-m="lock" id="m-lock">Verrouiller la disposition</button>
+      <div class="mh">Paramètres</div>
+      <button data-m="settings">Devise, rafraîchissement, notifications…</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap"><div class="grid-stack" id="grid"></div></main>
+
+<footer class="foot">
+  <span>Graphiques et cours fournis par <a href="https://www.tradingview.com/" target="_blank" rel="noopener">TradingView</a>.</span>
+  <span>Les cours des actions sont en général <b>différés (≈ 15 min)</b> selon la bourse — ce n'est pas du temps réel strict. Ce dashboard ne constitue pas un conseil en investissement.</span>
+</footer>
+
+<datalist id="symlist"></datalist>
+
+<!-- ============ DIALOGUES ============ -->
+<dialog id="dlg-pos"><form class="dlg-form" id="f-pos">
+  <h2 id="pos-title">Ajouter au portefeuille</h2>
+  <label>Symbole (format BOURSE:TICKER)<input id="p-sym" list="symlist" placeholder="NASDAQ:AAPL" required></label>
+  <label>Nom de l'entreprise<input id="p-name" placeholder="Apple"></label>
+  <div class="row3">
+    <label>Prix d'achat<input id="p-buy" type="number" step="any" min="0"></label>
+    <label>Quantité<input id="p-qty" type="number" step="any" min="0"></label>
+    <label>Montant investi<input id="p-amt" type="number" step="any" min="0"></label>
+  </div>
+  <label>Devise de cotation (celle du prix d'achat)
+    <select id="p-ccy"><option>EUR</option><option>USD</option><option>GBP</option></select></label>
+  <label>Cours actuel manuel (optionnel)<input id="p-man" type="number" step="any" min="0" placeholder="Utilisé si aucune clé API ou action hors USA"></label>
+  <small>Renseigne 2 des 3 champs prix / quantité / montant, le 3<sup>e</sup> est calculé.</small>
+  <div class="dlg-actions"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn primary">Enregistrer</button></div>
+</form></dialog>
+
+<dialog id="dlg-input"><form class="dlg-form" id="f-input">
+  <h2>Ajouter aux favoris</h2>
+  <label>Symbole ou nom<input id="i-sym" list="symlist" placeholder="NASDAQ:TSLA" required autocomplete="off"></label>
+  <div class="dlg-actions"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn primary">Ajouter</button></div>
+</form></dialog>
+
+<dialog id="dlg-pick"><div class="dlg-form">
+  <h2 id="pick-title"></h2><div id="pick-list"></div>
+  <div class="dlg-actions"><button type="button" class="btn ghost" data-close>Fermer</button></div>
+</div></dialog>
+
+<dialog id="dlg-display"><div class="dlg-form">
+  <h2>Gestion de l'affichage</h2>
+  <label class="check"><input type="checkbox" data-mod="tape"> Bandeau des indices</label>
+  <label class="check"><input type="checkbox" data-mod="summary"> Résumé du portefeuille</label>
+  <label class="check"><input type="checkbox" data-mod="portfolio"> Investissements</label>
+  <label class="check"><input type="checkbox" data-mod="favorites"> Favoris & surveillance</label>
+  <label class="check"><input type="checkbox" data-mod="markets"> Marchés mondiaux</label>
+  <label>Thème<select id="d-theme"><option value="dark">Sombre</option><option value="light">Clair</option></select></label>
+  <label>Nombre de tuiles affichées (module Marchés)
+    <select id="d-tiles"><option>12</option><option>24</option><option>36</option><option>48</option><option>60</option></select></label>
+  <label class="check"><input type="checkbox" id="d-lock"> Verrouiller la disposition (plus de déplacement / redimensionnement)</label>
+  <small>Astuce : déplace un panneau en le saisissant par son titre, redimensionne-le avec le coin en bas à droite.</small>
+  <div class="dlg-actions"><button type="button" class="btn danger" id="d-reset">Réinitialiser la disposition</button><button type="button" class="btn primary" data-close>OK</button></div>
+</div></dialog>
+
+<dialog id="dlg-settings"><div class="dlg-form">
+  <h2>Paramètres</h2>
+  <label>Devise d'affichage
+    <select id="s-ccy"><option value="EUR">€ Euro</option><option value="USD">$ Dollar</option><option value="GBP">£ Livre</option></select></label>
+  <label>Rafraîchissement automatique des cours du portefeuille
+    <select id="s-refresh"><option value="0">Désactivé</option><option value="30">30 secondes</option><option value="60">1 minute</option><option value="300">5 minutes</option></select></label>
+  <label>Clé API Finnhub (optionnelle)
+    <input id="s-key" type="password" placeholder="Colle ta clé gratuite ici" autocomplete="off"></label>
+  <small>Gratuit sur <b>finnhub.io</b> (inscription par e-mail). Limite : 60 appels/minute, actions cotées aux <b>États-Unis uniquement</b>. Sans clé, saisis le cours actuel à la main (les graphiques TradingView restent à jour d'eux-mêmes). La clé reste dans ton navigateur (localStorage).</small>
+  <label class="check"><input type="checkbox" id="s-notif"> Notifications du navigateur</label>
+  <label>Notifier quand une position dépasse ± (%)<input id="s-thr" type="number" min="1" step="1"></label>
+  <small id="s-fxinfo"></small>
+  <div class="dlg-actions"><button type="button" class="btn primary" data-close>OK</button></div>
+</div></dialog>
+
+<dialog id="dlg-pop">
+  <div class="pop">
+    <div class="pop-head">
+      <div><h2 id="pop-title"></h2><small id="pop-sym"></small></div>
+      <div class="sp">
+        <button class="btn" id="pop-fav"></button>
+        <button class="btn primary" id="pop-pf">+ Ajouter au portefeuille</button>
+        <button class="btn ghost" data-close>✕ Fermer</button>
+      </div>
+    </div>
+    <div class="pop-body">
+      <div class="pop-info" id="pop-info"></div>
+      <div class="pop-chart" id="pop-chart"></div>
+      <div class="pop-profile" id="pop-profile"></div>
+      <div class="pop-news" id="pop-news"></div>
+    </div>
+  </div>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* =====================================================================
+   OUTILS
+   ===================================================================== */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const uid = () => Math.random().toString(36).slice(2, 9);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const html = s => { const t = document.createElement('template'); t.innerHTML = s.trim(); return t.content.firstElementChild; };
+function toast(msg){ const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2600); }
+
+const I = { // petites icônes SVG
+  grip:'<svg viewBox="0 0 24 24"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg>',
+  edit:'<svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>',
+  del:'<svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="m6 6 1 14h10l1-14"/></svg>',
+  info:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/></svg>',
+  star:'<svg viewBox="0 0 24 24"><path d="m12 3 2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9Z"/></svg>',
+  wallet:'<svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="14" rx="3"/><path d="M3 10h18M16 15h2"/></svg>',
+  globe:'<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>',
+  chart:'<svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 5-6"/></svg>'
+};
+
+/* =====================================================================
+   DONNÉES DE RÉFÉRENCE : une liste d'actions connues (pays, ETF)
+   → sert aux tuiles du module Marchés et à l'autocomplétion.
+   Pour n'importe quelle autre action, saisis son symbole BOURSE:TICKER.
+   ===================================================================== */
+const UNIVERSE = [
+  // États-Unis
+  {s:'NASDAQ:AAPL',n:'Apple',c:'US'},{s:'NASDAQ:MSFT',n:'Microsoft',c:'US'},{s:'NASDAQ:NVDA',n:'NVIDIA',c:'US'},
+  {s:'NASDAQ:AMZN',n:'Amazon',c:'US'},{s:'NASDAQ:GOOGL',n:'Alphabet (Google)',c:'US'},{s:'NASDAQ:META',n:'Meta Platforms',c:'US'},
+  {s:'NASDAQ:TSLA',n:'Tesla',c:'US'},{s:'NASDAQ:NFLX',n:'Netflix',c:'US'},{s:'NASDAQ:TTWO',n:'Take-Two Interactive',c:'US'},
+  {s:'NASDAQ:AMD',n:'AMD',c:'US'},{s:'NASDAQ:COST',n:'Costco',c:'US'},{s:'NASDAQ:INTC',n:'Intel',c:'US'},
+  {s:'NYSE:JPM',n:'JPMorgan Chase',c:'US'},{s:'NYSE:V',n:'Visa',c:'US'},{s:'NYSE:KO',n:'Coca-Cola',c:'US'},
+  {s:'NYSE:DIS',n:'Walt Disney',c:'US'},{s:'NYSE:WMT',n:'Walmart',c:'US'},{s:'NYSE:XOM',n:'Exxon Mobil',c:'US'},
+  {s:'NYSE:NKE',n:'Nike',c:'US'},{s:'NYSE:BA',n:'Boeing',c:'US'},
+  // France
+  {s:'EURONEXT:MC',n:'LVMH',c:'FR'},{s:'EURONEXT:OR',n:"L'Oréal",c:'FR'},{s:'EURONEXT:TTE',n:'TotalEnergies',c:'FR'},
+  {s:'EURONEXT:AIR',n:'Airbus',c:'FR'},{s:'EURONEXT:SAN',n:'Sanofi',c:'FR'},{s:'EURONEXT:BNP',n:'BNP Paribas',c:'FR'},
+  {s:'EURONEXT:AI',n:'Air Liquide',c:'FR'},{s:'EURONEXT:SU',n:'Schneider Electric',c:'FR'},{s:'EURONEXT:CS',n:'AXA',c:'FR'},
+  {s:'EURONEXT:RMS',n:'Hermès',c:'FR'},{s:'EURONEXT:ASM',n:'ASM International',c:'FR'},{s:'EURONEXT:DG',n:'Vinci',c:'FR'},
+  // Allemagne
+  {s:'XETR:SAP',n:'SAP',c:'DE'},{s:'XETR:SIE',n:'Siemens',c:'DE'},{s:'XETR:ALV',n:'Allianz',c:'DE'},
+  {s:'XETR:DTE',n:'Deutsche Telekom',c:'DE'},{s:'XETR:BMW',n:'BMW',c:'DE'},{s:'XETR:MBG',n:'Mercedes-Benz',c:'DE'},
+  {s:'XETR:VOW3',n:'Volkswagen',c:'DE'},{s:'XETR:BAS',n:'BASF',c:'DE'},{s:'XETR:ADS',n:'Adidas',c:'DE'},
+  // Royaume-Uni
+  {s:'LSE:SHEL',n:'Shell',c:'UK'},{s:'LSE:AZN',n:'AstraZeneca',c:'UK'},{s:'LSE:HSBA',n:'HSBC',c:'UK'},
+  {s:'LSE:ULVR',n:'Unilever',c:'UK'},{s:'LSE:BP',n:'BP',c:'UK'},{s:'LSE:GSK',n:'GSK',c:'UK'},
+  {s:'LSE:RIO',n:'Rio Tinto',c:'UK'},{s:'LSE:BARC',n:'Barclays',c:'UK'},
+  // Japon
+  {s:'TSE:7203',n:'Toyota',c:'JP'},{s:'TSE:6758',n:'Sony',c:'JP'},{s:'TSE:9984',n:'SoftBank Group',c:'JP'},{s:'TSE:7974',n:'Nintendo',c:'JP'},
+  // ETF / indices associés
+  {s:'AMEX:SPY',n:'SPDR S&P 500 ETF',c:'ETF'},{s:'NASDAQ:QQQ',n:'Invesco QQQ (Nasdaq 100)',c:'ETF'},
+  {s:'AMEX:DIA',n:'SPDR Dow Jones ETF',c:'ETF'},{s:'AMEX:IWM',n:'iShares Russell 2000',c:'ETF'}
+];
+const COUNTRIES = {ALL:'Tous les pays',US:'États-Unis',FR:'France',DE:'Allemagne',UK:'Royaume-Uni',JP:'Japon',ETF:'ETF / indices'};
+const nameOf = sym => (UNIVERSE.find(u => u.s === sym) || {}).n || sym.split(':').pop();
+function normSym(v){
+  v = (v || '').trim().toUpperCase(); if (!v) return '';
+  if (v.includes(':')) return v;
+  const u = UNIVERSE.find(x => x.s.split(':')[1] === v || x.n.toUpperCase() === v);
+  return u ? u.s : v;
+}
+$('#symlist').innerHTML = UNIVERSE.map(u => `<option value="${u.s}">${esc(u.n)}</option>`).join('');
+
+/* =====================================================================
+   ÉTAT + SAUVEGARDE (localStorage)
+   ===================================================================== */
+const LS = 'tdb-state-v1';
+const DEFAULTS = () => ({
+  theme:'dark', ccy:'EUR', refresh:60, key:'', notif:false, thr:5, locked:false,
+  tiles:24, view:'tiles', country:'ALL', heatSrc:'SPX500', heatPerf:'change',
+  modules:{tape:true, summary:true, portfolio:true, favorites:true, markets:true},
+  layout:{},
+  // Données de démonstration (à modifier / supprimer) — les cours "manuels" sont fictifs
+  positions:[
+    {id:uid(), symbol:'NASDAQ:AAPL', name:'Apple',  qty:10, buy:170, ccy:'USD', manual:228},
+    {id:uid(), symbol:'NASDAQ:NVDA', name:'NVIDIA', qty:5,  buy:120, ccy:'USD', manual:175},
+    {id:uid(), symbol:'EURONEXT:MC', name:'LVMH',   qty:3,  buy:690, ccy:'EUR', manual:610}
+  ],
+  favorites:[
+    {symbol:'NASDAQ:TSLA'},{symbol:'EURONEXT:ASM'},{symbol:'NASDAQ:TTWO'},{symbol:'EURONEXT:OR'}
+  ]
+});
+let state;
+try {
+  const d = DEFAULTS(), saved = JSON.parse(localStorage.getItem(LS) || '{}');
+  state = {...d, ...saved, modules:{...d.modules, ...(saved.modules || {})}};
+} catch { state = DEFAULTS(); }
+// Nouvelle disposition par défaut : on réinitialise l'ancienne disposition sauvegardée une fois
+if (state.layoutV !== 2){ state.layout = {}; state.layoutV = 2; }
+const save = () => { try { localStorage.setItem(LS, JSON.stringify(state)); } catch {} };
+document.documentElement.dataset.theme = state.theme;
+
+/* =====================================================================
+   WIDGETS TRADINGVIEW : fonction générique
+   Crée le conteneur + le <script> avec la config JSON, comme dans tes fichiers.
+   ===================================================================== */
+function tvWidget(host, name, cfg){
+  host.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'tradingview-widget-container';
+  wrap.style.cssText = 'width:100%;height:100%';
+  const inner = document.createElement('div');
+  inner.className = 'tradingview-widget-container__widget';
+  inner.style.cssText = 'width:100%;height:100%';
+  wrap.appendChild(inner);
+  const s = document.createElement('script');
+  s.src = 'https://s3.tradingview.com/external-embedding/embed-widget-' + name + '.js';
+  s.async = true;
+  s.text = JSON.stringify({colorTheme:state.theme, isTransparent:true, locale:'fr', width:'100%', height:'100%', ...cfg});
+  wrap.appendChild(s);
+  host.appendChild(wrap);
+}
+// Chargement paresseux : un widget ne se charge que quand il devient visible (évite de saturer la page)
+const io = new IntersectionObserver(es => es.forEach(e => {
+  if (e.isIntersecting){ io.unobserve(e.target); e.target._load && e.target._load(); }
+}), {rootMargin:'250px'});
+const lazy = (el, fn) => { el._load = fn; io.observe(el); };
+
+/* =====================================================================
+   DEVISES ET COURS
+   - Taux de change : API gratuite Frankfurter (sans clé).
+   - Cours du portefeuille : Finnhub (si clé) sinon cours manuel saisi.
+   ===================================================================== */
+let fx = {EUR:1, USD:1.10, GBP:0.85}, fxLive = false;   // valeurs de secours approximatives
+const quotes = {};                                       // cours Finnhub : {symbole: {price, ts}}
+const US = ['NASDAQ','NYSE','AMEX','ARCA','BATS'];
+const cv = (v, from) => v / (fx[from] || 1) * (fx[state.ccy] || 1);
+const fmt = v => new Intl.NumberFormat('fr-FR', {style:'currency', currency:state.ccy}).format(v || 0);
+const fmtSigned = v => (v >= 0 ? '+' : '−') + fmt(Math.abs(v));
+const fmtPct = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace('.', ',') + ' %';
+
+async function fetchFx(){
+  try {
+    const r = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD,GBP');
+    const j = await r.json();
+    fx = {EUR:1, ...j.rates}; fxLive = true;
+  } catch { fxLive = false; }
+  $('#s-fxinfo').textContent = fxLive
+    ? 'Taux de change : Banque centrale européenne via Frankfurter (mis à jour 1 fois par jour ouvré).'
+    : 'Taux de change : service injoignable, taux approximatifs utilisés. Les conversions € / $ / £ sont donc indicatives.';
+}
+
+async function fetchQuotes(){
+  if (!state.key){ setStatus('Cours actuels : saisie manuelle (aucune clé API). Les graphiques TradingView se mettent à jour d\'eux-mêmes.'); return; }
+  const syms = [...new Set(state.positions.map(p => p.symbol).filter(s => US.includes(s.split(':')[0])))];
+  let ok = 0, ko = 0;
+  await Promise.all(syms.map(async s => {
+    try {
+      const r = await fetch('https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(s.split(':')[1]) + '&token=' + encodeURIComponent(state.key));
+      if (!r.ok) throw new Error(r.status);
+      const j = await r.json();
+      if (j && j.c > 0){ quotes[s] = {price:j.c, ts:Date.now()}; ok++; } else ko++;
+    } catch { ko++; }
+  }));
+  setStatus(`Finnhub : ${ok} cours reçu(s)` + (ko ? `, ${ko} échec(s) (clé invalide, quota ou action non US → cours manuel utilisé)` : '') + '. Données US, pas garanties temps réel strict.');
+}
+function setStatus(t){ const n = P('summary', '#pf-status'); if (n) n.textContent = t; }
+
+/* =====================================================================
+   CALCULS DU PORTEFEUILLE
+   ===================================================================== */
+function priceOf(p){
+  if (p.ccy === 'USD' && quotes[p.symbol]) return {price:quotes[p.symbol].price, src:'api'};
+  if (p.manual > 0) return {price:p.manual, src:'manual'};
+  return {price:p.buy, src:'none'};
+}
+function calc(p){
+  const {price, src} = priceOf(p);
+  const invested = cv(p.qty * p.buy, p.ccy), value = cv(p.qty * price, p.ccy);
+  const pl = value - invested;
+  return {price, src, invested, value, pl, pct: invested ? pl / invested * 100 : 0};
+}
+const SRC_LABEL = {api:'Finnhub', manual:'Cours manuel', none:'≈ prix d\'achat'};
+
+/* =====================================================================
+   PANNEAUX (construction du HTML de chaque module)
+   ===================================================================== */
+const PANELS = {
+  tape:      {def:{x:0, y:0, w:12, h:1}},
+  summary:   {def:{x:0, y:1, w:8,  h:4}},
+  portfolio: {def:{x:0, y:5, w:8,  h:8}},
+  favorites: {def:{x:8, y:1, w:4,  h:12}},
+  markets:   {def:{x:0, y:13,w:12, h:9}}
+};
+const panelEls = {};
+const P = (id, sel) => panelEls[id].querySelector(sel);
+
+function buildPanels(){
+  panelEls.tape = html(`<section class="panel tape"><div class="panel-head" title="Déplacer">${I.grip}</div><div class="panel-body" id="tape-host"></div></section>`);
+
+  panelEls.summary = html(`<section class="panel">
+    <header class="panel-head"><h3>${I.wallet}Mon portefeuille</h3><span class="muted" id="sum-time"></span></header>
+    <div class="panel-body sum">
+      <div class="sum-card">
+        <span class="lbl">Valeur actuelle</span>
+        <div class="big" id="s-total">–</div>
+        <div class="sum-row">
+          <div><span class="lbl">Investi</span><b id="s-inv">–</b></div>
+          <div><span class="lbl">Plus / moins-value</span><b id="s-pl">–</b></div>
+        </div>
+      </div>
+      <div class="donut-wrap"><svg viewBox="0 0 42 42" id="s-donut"></svg><ul id="s-legend"></ul></div>
+      <p class="note warn-note" id="pf-warn"></p>
+      <p class="note" id="pf-status"></p>
+    </div></section>`);
+
+  panelEls.portfolio = html(`<section class="panel">
+    <header class="panel-head"><h3>${I.chart}Investissements</h3>
+      <div class="tools"><button class="btn primary sm" id="pf-add">+ Ajouter</button></div></header>
+    <div class="panel-body"><div class="pf-list" id="pf-list"></div></div></section>`);
+
+  panelEls.favorites = html(`<section class="panel">
+    <header class="panel-head"><h3>${I.star}Favoris & surveillance</h3>
+      <div class="tools">
+        <input class="mini-input" id="fav-input" list="symlist" placeholder="Rechercher / ajouter…" style="width:170px" autocomplete="off">
+        <button class="btn primary sm" id="fav-add">★</button>
+      </div></header>
+    <div class="panel-body" id="fav-list"></div></section>`);
+
+  panelEls.markets = html(`<section class="panel" data-view="${state.view}">
+    <header class="panel-head"><h3>${I.globe}Marchés mondiaux</h3>
+      <div class="tools">
+        <div class="mk-tools mk-tiles-tools">
+          <input class="mini-input" id="mk-q" placeholder="Recherche rapide…" style="width:150px">
+          <select class="mini-select" id="mk-country"></select>
+        </div>
+        <div class="mk-tools mk-heat-tools">
+          <select class="mini-select" id="mk-heatsrc">
+            <option value="SPX500">S&P 500</option><option value="NASDAQ100">Nasdaq 100</option>
+            <option value="DOWJONES">Dow Jones 30</option><option value="AllUSA">Toutes actions US</option></select>
+          <select class="mini-select" id="mk-heatperf">
+            <option value="change">Jour</option><option value="Perf.W">Semaine</option><option value="Perf.1M">1 mois</option>
+            <option value="Perf.3M">3 mois</option><option value="Perf.6M">6 mois</option><option value="Perf.YTD">Depuis janv.</option>
+            <option value="Perf.Y">1 an</option></select>
+        </div>
+        <div class="seg" id="mk-seg"><button data-v="tiles">Tuiles</button><button data-v="heat">Heatmap (performance)</button></div>
+      </div></header>
+    <div class="panel-body" id="mk-body"></div></section>`);
+}
+
+/* =====================================================================
+   GRILLE (GridStack) : disposition, glisser-déposer, redimensionnement
+   ===================================================================== */
+let grid;
+function initGrid(){
+  grid = GridStack.init({
+    column:12, cellHeight:80, margin:8, handle:'.panel-head', float:false, animate:true,
+    columnOpts:{breakpoints:[{w:900, c:1}]}      // 1 colonne sur petit écran
+  }, '#grid');
+  // Pendant un déplacement, on bloque les iframes sinon elles "avalent" la souris
+  grid.on('dragstart resizestart', () => document.body.classList.add('dragging'));
+  grid.on('dragstop resizestop',  () => document.body.classList.remove('dragging'));
+  grid.on('change', saveLayout);
+  Object.keys(PANELS).forEach(id => state.modules[id] && mountPanel(id));
+  grid.setStatic(state.locked);
+}
+function saveLayout(){
+  if (grid.getColumn() !== 12) return;          // on ne sauvegarde pas la disposition mobile
+  grid.save(false).forEach(n => { state.layout[n.id] = {x:n.x, y:n.y, w:n.w, h:n.h}; });
+  save();
+}
+function mountPanel(id){
+  const L = state.layout[id] || PANELS[id].def;
+  const el = grid.addWidget({id, x:L.x, y:L.y, w:L.w, h:L.h, minW:2, minH:1, content:' '});
+  $('.grid-stack-item-content', el).appendChild(panelEls[id]);
+}
+function unmountPanel(id){
+  const el = grid.getGridItems().find(e => e.gridstackNode && e.gridstackNode.id === id);
+  if (el){ panelEls[id].remove(); grid.removeWidget(el, true); }
+}
+function setModule(id, on){
+  state.modules[id] = on; save();
+  on ? mountPanel(id) : unmountPanel(id);
+  if (on) renderModule(id);
+}
+function setLocked(v){
+  state.locked = v; save(); grid.setStatic(v);
+  $('#m-lock').textContent = v ? 'Déverrouiller la disposition' : 'Verrouiller la disposition';
+  $('#d-lock').checked = v;
+}
+function resetLayout(){
+  Object.keys(PANELS).forEach(id => state.modules[id] && unmountPanel(id));
+  state.layout = {}; save();
+  Object.keys(PANELS).forEach(id => state.modules[id] && mountPanel(id));
+  toast('Disposition réinitialisée');
+}
+
+/* =====================================================================
+   MODULE : BANDEAU D'INDICES
+   ===================================================================== */
+function renderTape(){
+  tvWidget(P('tape', '#tape-host'), 'ticker-tape', {
+    symbols:[
+      {proName:'FOREXCOM:SPXUSD', title:'S&P 500'}, {proName:'FOREXCOM:NSXUSD', title:'Nasdaq 100'},
+      {proName:'FOREXCOM:DJI', title:'Dow 30'}, {proName:'FX:EURUSD', title:'EUR/USD'},
+      {proName:'BITSTAMP:BTCUSD', title:'Bitcoin'}, {proName:'BITSTAMP:ETHUSD', title:'Ethereum'},
+      {proName:'CMCMARKETS:GOLD', title:'Or'}
+    ],
+    showSymbolLogo:true, displayMode:'adaptive'
+  });
+}
+
+/* =====================================================================
+   MODULE : PORTEFEUILLE
+   ===================================================================== */
+function renderPortfolio(){
+  const host = P('portfolio', '#pf-list');
+  $$('.empty', host).forEach(e => e.remove());
+  const ids = new Set(state.positions.map(p => p.id));
+  $$('.pcard', host).forEach(c => { if (!ids.has(c.dataset.id)) c.remove(); });
+  if (!state.positions.length){
+    host.innerHTML = '<div class="empty">Aucune action dans le portefeuille.<br>Clique sur « + Ajouter » pour commencer.</div>';
+    return;
+  }
+  state.positions.forEach(p => {
+    let card = host.querySelector(`.pcard[data-id="${p.id}"]`);
+    if (!card){ card = createCard(p); host.appendChild(card); }
+    updateCard(card, p);
+  });
+}
+function createCard(p){
+  const c = html(`<article class="pcard" data-id="${p.id}">
+    <div class="pc-head">
+      <div><div class="pc-name"></div><div class="pc-tick"></div></div>
+      <span class="pc-badge"></span>
+      <div class="pc-tools">
+        <button class="icon" data-act="info" title="Détails">${I.info}</button>
+        <button class="icon" data-act="edit" title="Modifier">${I.edit}</button>
+        <button class="icon" data-act="del" title="Supprimer">${I.del}</button>
+      </div>
+    </div>
+    <div class="pc-chart"></div>
+    <label class="pc-price">Cours actuel <input type="number" step="any" min="0" class="p-live" placeholder="à saisir"><small class="p-unit"></small></label>
+    <div class="pc-stats">
+      <div><span>Investi</span><b class="s-inv"></b></div>
+      <div><span>Valeur actuelle</span><b class="s-val"></b></div>
+      <div><span>Plus / moins-value</span><b class="s-pl"></b></div>
+    </div></article>`);
+  c.addEventListener('click', e => {
+    const b = e.target.closest('[data-act]'); if (!b) return;
+    const pos = state.positions.find(x => x.id === c.dataset.id); if (!pos) return;
+    if (b.dataset.act === 'info') openStock(pos.symbol);
+    if (b.dataset.act === 'edit') openPosForm(pos);
+    if (b.dataset.act === 'del') deletePosition(pos.id);
+  });
+  // Saisie directe du cours actuel (utile sans clé API ou hors actions US)
+  $('.p-live', c).addEventListener('change', e => {
+    const pos = state.positions.find(x => x.id === c.dataset.id); if (!pos) return;
+    const v = parseFloat(e.target.value);
+    pos.manual = v > 0 ? v : null; save(); refreshNumbers();
+  });
+  return c;
+}
+function updateCard(card, p){
+  const c = calc(p), up = c.pl >= 0;
+  card.classList.toggle('up', up); card.classList.toggle('down', !up);
+  $('.pc-name', card).textContent = p.name || p.symbol;
+  $('.pc-tick', card).textContent = p.symbol + ' · ' + p.ccy;
+  const badge = $('.pc-badge', card);
+  badge.textContent = c.src === 'none' ? 'Cours à saisir' : SRC_LABEL[c.src];
+  badge.classList.toggle('warn', c.src === 'none');
+  const live = $('.p-live', card);
+  live.disabled = c.src === 'api';
+  if (document.activeElement !== live) live.value = c.src === 'none' ? '' : +c.price.toFixed(4);
+  $('.p-unit', card).textContent = p.ccy;
+  $('.s-inv', card).textContent = fmt(c.invested);
+  $('.s-val', card).textContent = c.src === 'none' ? '—' : fmt(c.value);
+  const pl = $('.s-pl', card);
+  if (c.src === 'none'){ pl.innerHTML = '—'; pl.className = 's-pl'; }
+  else { pl.innerHTML = `${fmtSigned(c.pl)}<br><small>${fmtPct(c.pct)}</small>`; pl.className = 's-pl ' + (up ? 'up' : 'down'); }
+  if (c.src === 'none'){ card.classList.remove('up', 'down'); }
+  // Le graphique n'est reconstruit que si le symbole, le thème ou la couleur change
+  const key = [p.symbol, state.theme, up ? 'u' : 'd'].join('|');
+  const ch = $('.pc-chart', card);
+  if (card.dataset.chartKey !== key){
+    card.dataset.chartKey = key;
+    const col = up ? '#22ab94' : '#f7525f', rgb = up ? '34,171,148' : '247,82,95';
+    lazy(ch, () => tvWidget(ch, 'symbol-overview', {
+      symbols:[[p.name || p.symbol, p.symbol + '|12M']],
+      chartType:'area', lineWidth:2, lineType:0, lineColor:col,
+      topColor:`rgba(${rgb},0.35)`, bottomColor:`rgba(${rgb},0)`,
+      valuesTracking:'1', changeMode:'price-and-percent', autosize:true, chartOnly:false,
+      dateRanges:['1d|1','1m|30','3m|60','12m|1D','60m|1W','all|1M'],
+      fontSize:'10', headerFontSize:'medium', noTimeScale:false, hideDateRanges:false, hideMarketStatus:false, hideSymbolLogo:false
+    }));
+  }
+}
+
+/* --- Résumé + donut --- */
+const COLORS = ['#2f5bff','#22ab94','#f7525f','#f5a623','#a855f7','#06b6d4'];
+function updateSummary(){
+  let inv = 0, val = 0; const items = [];
+  state.positions.forEach(p => { const c = calc(p); inv += c.invested; val += c.value; items.push({n:p.name || p.symbol, v:c.value}); });
+  const missing = state.positions.filter(p => priceOf(p).src === 'none').length;
+  P('summary', '#pf-warn').textContent = missing
+    ? `⚠ ${missing} position(s) sans cours actuel : elles comptent au prix d'achat (gain 0). Saisis le cours sur la carte, ou ajoute une clé Finnhub (actions US).` : '';
+  const pl = val - inv, pct = inv ? pl / inv * 100 : 0;
+  P('summary', '#s-total').textContent = fmt(val);
+  P('summary', '#s-inv').textContent = fmt(inv);
+  P('summary', '#s-pl').innerHTML = `${fmtSigned(pl)} <span class="chip">${fmtPct(pct)}</span>`;
+  P('summary', '#sum-time').textContent = 'MAJ ' + new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+  items.sort((a, b) => b.v - a.v);
+  let svg = '<circle cx="21" cy="21" r="15.9155" fill="none" stroke="var(--line)" stroke-width="5"/>', off = 25, leg = '';
+  items.slice(0, 6).forEach((it, i) => {
+    const share = val > 0 ? it.v / val * 100 : 0;
+    svg += `<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${COLORS[i]}" stroke-width="5" stroke-dasharray="${share} ${100 - share}" stroke-dashoffset="${off}"/>`;
+    off -= share;
+    leg += `<li><i style="background:${COLORS[i]}"></i>${esc(it.n)}<span>${share.toFixed(0)} %</span></li>`;
+  });
+  P('summary', '#s-donut').innerHTML = svg;
+  P('summary', '#s-legend').innerHTML = leg || '<li class="muted">Répartition indisponible</li>';
+}
+function refreshNumbers(){
+  if (state.modules.portfolio) renderPortfolio();
+  if (state.modules.summary) updateSummary();
+  checkAlerts();
+}
+
+/* --- Formulaire ajout / modification --- */
+let editingId = null;
+function guessCcy(sym){
+  const ex = sym.split(':')[0];
+  if (US.includes(ex)) return 'USD';
+  if (['EURONEXT','XETR','MIL','BME','AMS'].includes(ex)) return 'EUR';
+  if (ex === 'LSE') return 'GBP';
+  return state.ccy;
+}
+function openPosForm(pos, prefill){
+  editingId = pos ? pos.id : null;
+  const d = pos || prefill || {};
+  $('#pos-title').textContent = pos ? 'Modifier un investissement' : 'Ajouter au portefeuille';
+  $('#p-sym').value = d.symbol || '';
+  $('#p-name').value = d.name || '';
+  $('#p-buy').value = d.buy ?? '';
+  $('#p-qty').value = d.qty ?? '';
+  $('#p-amt').value = pos ? +(pos.qty * pos.buy).toFixed(2) : '';
+  $('#p-ccy').value = d.ccy || (d.symbol ? guessCcy(d.symbol) : state.ccy);
+  $('#p-man').value = d.manual || '';
+  $('#dlg-pos').showModal();
+}
+const num = id => parseFloat($(id).value);
+['#p-buy', '#p-qty'].forEach(id => $(id).addEventListener('input', () => {
+  if (num('#p-buy') > 0 && num('#p-qty') > 0) $('#p-amt').value = +(num('#p-buy') * num('#p-qty')).toFixed(2);
+}));
+$('#p-amt').addEventListener('input', () => {
+  const a = num('#p-amt');
+  if (!(a > 0)) return;
+  if (num('#p-buy') > 0) $('#p-qty').value = +(a / num('#p-buy')).toFixed(6);
+  else if (num('#p-qty') > 0) $('#p-buy').value = +(a / num('#p-qty')).toFixed(4);
+});
+$('#p-sym').addEventListener('change', () => {
+  const s = normSym($('#p-sym').value); $('#p-sym').value = s;
+  if (!$('#p-name').value) $('#p-name').value = nameOf(s) === s.split(':').pop() ? '' : nameOf(s);
+  $('#p-ccy').value = guessCcy(s);
+});
+$('#f-pos').addEventListener('submit', e => {
+  e.preventDefault();
+  const symbol = normSym($('#p-sym').value);
+  let buy = num('#p-buy'), qty = num('#p-qty'); const amt = num('#p-amt');
+  if (!(qty > 0) && amt > 0 && buy > 0) qty = amt / buy;
+  if (!(buy > 0) && amt > 0 && qty > 0) buy = amt / qty;
+  if (!symbol || !(buy > 0) || !(qty > 0)){ toast('Renseigne le symbole et 2 valeurs parmi prix / quantité / montant'); return; }
+  const data = {symbol, name:$('#p-name').value.trim() || nameOf(symbol), qty, buy, ccy:$('#p-ccy').value, manual:num('#p-man') > 0 ? num('#p-man') : null};
+  if (editingId) Object.assign(state.positions.find(p => p.id === editingId), data);
+  else state.positions.push({id:uid(), ...data});
+  save(); $('#dlg-pos').close(); fetchQuotes().then(refreshNumbers); refreshNumbers();
+  toast(editingId ? 'Investissement modifié' : 'Ajouté au portefeuille');
+});
+function deletePosition(id){
+  const p = state.positions.find(x => x.id === id);
+  if (!p || !confirm(`Supprimer ${p.name || p.symbol} du portefeuille ?`)) return;
+  state.positions = state.positions.filter(x => x.id !== id);
+  save(); refreshNumbers(); toast('Investissement supprimé');
+}
+
+/* =====================================================================
+   MODULE : FAVORIS (liste + glisser-déposer pour réordonner)
+   ===================================================================== */
+function renderFavorites(){
+  const host = P('favorites', '#fav-list');
+  host.innerHTML = '';
+  if (!state.favorites.length){ host.innerHTML = '<div class="empty">Aucun favori.<br>Cherche une action ci-dessus pour la suivre.</div>'; return; }
+  state.favorites.forEach(f => {
+    const row = html(`<div class="frow" data-sym="${esc(f.symbol)}">
+      <div class="f-top">
+        <span class="f-grip" title="Glisser pour réorganiser">${I.grip}</span>
+        <div class="f-info" title="Voir le détail"><b>${esc(nameOf(f.symbol))}</b><small>${esc(f.symbol)}</small></div>
+        <button class="btn sm" data-act="pf">+ Portefeuille</button>
+        <button class="icon" data-act="rm" title="Retirer des favoris">${I.del}</button>
+      </div>
+      <div class="f-quote"></div></div>`);
+    const q = $('.f-quote', row);
+    lazy(q, () => tvWidget(q, 'single-quote', {symbol:f.symbol}));
+    // la ligne n'est "draggable" que quand on saisit la poignée (sinon les iframes gênent)
+    $('.f-grip', row).addEventListener('mousedown', () => row.draggable = true);
+    row.addEventListener('click', e => {
+      const b = e.target.closest('[data-act]');
+      if (b && b.dataset.act === 'pf') openPosForm(null, {symbol:f.symbol, name:nameOf(f.symbol)});
+      else if (b && b.dataset.act === 'rm') removeFavorite(f.symbol);
+      else if (e.target.closest('.f-info')) openStock(f.symbol);
+    });
+    host.appendChild(row);
+  });
+}
+function bindFavDnD(){ // appelée une seule fois, après buildPanels()
+  let dragSym = null, target = null;
+  const clear = () => $$('.frow', panelEls.favorites).forEach(r => r.classList.remove('drop-before', 'drop-after', 'dragged'));
+  panelEls.favorites.addEventListener('dragstart', e => {
+    const row = e.target.closest('.frow'); if (!row) return;
+    dragSym = row.dataset.sym; row.classList.add('dragged'); document.body.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', dragSym);
+  });
+  panelEls.favorites.addEventListener('dragover', e => {
+    if (!dragSym) return; e.preventDefault();
+    const row = e.target.closest('.frow'); if (!row || row.dataset.sym === dragSym) return;
+    const r = row.getBoundingClientRect(), after = e.clientY > r.top + r.height / 2;
+    $$('.frow', panelEls.favorites).forEach(x => x.classList.remove('drop-before', 'drop-after'));
+    row.classList.add(after ? 'drop-after' : 'drop-before'); target = {sym:row.dataset.sym, after};
+  });
+  panelEls.favorites.addEventListener('drop', e => {
+    if (!dragSym || !target) return; e.preventDefault();
+    const moved = state.favorites.find(f => f.symbol === dragSym);
+    state.favorites = state.favorites.filter(f => f.symbol !== dragSym);
+    let i = state.favorites.findIndex(f => f.symbol === target.sym) + (target.after ? 1 : 0);
+    state.favorites.splice(i, 0, moved); save(); renderFavorites();
+  });
+  panelEls.favorites.addEventListener('dragend', () => {
+    clear(); document.body.classList.remove('dragging');
+    $$('.frow', panelEls.favorites).forEach(r => r.draggable = false);
+    dragSym = target = null;
+  });
+}
+function addFavorite(raw){
+  const symbol = normSym(raw); if (!symbol) return;
+  if (state.favorites.some(f => f.symbol === symbol)){ toast('Déjà dans les favoris'); return; }
+  state.favorites.push({symbol}); save(); renderFavorites(); toast(nameOf(symbol) + ' ajouté aux favoris');
+}
+function removeFavorite(symbol){ state.favorites = state.favorites.filter(f => f.symbol !== symbol); save(); renderFavorites(); toast('Retiré des favoris'); }
+const isFav = s => state.favorites.some(f => f.symbol === s);
+
+/* =====================================================================
+   MODULE : MARCHÉS (tuiles cliquables + heatmap de performance)
+   ===================================================================== */
+function renderMarkets(){
+  const root = panelEls.markets, host = $('#mk-body', root);
+  root.dataset.view = state.view;
+  $$('#mk-seg button', root).forEach(b => b.classList.toggle('on', b.dataset.v === state.view));
+  $('#mk-country', root).innerHTML = Object.entries(COUNTRIES).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
+  $('#mk-country', root).value = state.country;
+  $('#mk-heatsrc', root).value = state.heatSrc;
+  $('#mk-heatperf', root).value = state.heatPerf;
+  host.innerHTML = '';
+  if (state.view === 'heat') return renderHeat(host);
+  renderTiles(host);
+}
+function renderTiles(host){
+  const q = $('#mk-q', panelEls.markets).value.trim().toLowerCase();
+  const list = UNIVERSE.filter(u => (state.country === 'ALL' || u.c === state.country) && (!q || u.n.toLowerCase().includes(q) || u.s.toLowerCase().includes(q)));
+  const shown = list.slice(0, state.tiles);
+  host.innerHTML = `<p class="count">${shown.length} / ${list.length} actions · clique sur une tuile pour le détail · pour une autre action, tape son symbole dans la barre de recherche en haut</p><div class="tiles"></div>`;
+  const wrap = $('.tiles', host);
+  shown.forEach(u => {
+    const t = html(`<div class="tile" title="${esc(u.n)}"><div class="w"></div><button class="tile-hit" aria-label="Détails ${esc(u.n)}"></button></div>`);
+    const w = $('.w', t);
+    lazy(w, () => tvWidget(w, 'single-quote', {symbol:u.s}));
+    $('.tile-hit', t).addEventListener('click', () => openStock(u.s));
+    wrap.appendChild(t);
+  });
+  if (q && !list.length){
+    const maybe = normSym(q);
+    const t = html(`<div class="tile tile-open">Ouvrir « ${esc(maybe)} »</div>`);
+    t.addEventListener('click', () => openStock(maybe)); wrap.appendChild(t);
+  }
+}
+function renderHeat(host){
+  const d = document.createElement('div'); d.className = 'heat'; host.appendChild(d);
+  tvWidget(d, 'stock-heatmap', {
+    exchanges:[], dataSource:state.heatSrc, grouping:'sector', blockSize:'market_cap_basic', blockColor:state.heatPerf,
+    hasTopBar:false, isDataSetEnabled:false, isZoomEnabled:true, hasSymbolTooltip:true, isMonoSize:false, isTransparent:false
+  });
+}
+
+/* =====================================================================
+   POPUP DÉTAIL D'UNE ACTION
+   ===================================================================== */
+let popSym = null;
+function openStock(raw){
+  const sym = normSym(raw); if (!sym) return;
+  popSym = sym;
+  $('#pop-title').textContent = nameOf(sym);
+  $('#pop-sym').textContent = sym;
+  updatePopBtns();
+  $('#dlg-pop').showModal();
+  tvWidget($('#pop-info'), 'symbol-info', {symbol:sym});
+  tvWidget($('#pop-chart'), 'advanced-chart', {
+    symbol:sym, interval:'D', timezone:'Europe/Paris', theme:state.theme, style:'1', autosize:true,
+    allow_symbol_change:false, hide_side_toolbar:false, withdateranges:true, details:false, calendar:false
+  });
+  tvWidget($('#pop-profile'), 'symbol-profile', {symbol:sym});
+  tvWidget($('#pop-news'), 'timeline', {feedMode:'symbol', symbol:sym, displayMode:'regular'});
+}
+function updatePopBtns(){ $('#pop-fav').textContent = isFav(popSym) ? '★ Retirer des favoris' : '☆ Ajouter aux favoris'; }
+$('#pop-fav').onclick = () => { isFav(popSym) ? removeFavorite(popSym) : addFavorite(popSym); updatePopBtns(); };
+$('#pop-pf').onclick = () => { $('#dlg-pop').close(); openPosForm(null, {symbol:popSym, name:nameOf(popSym)}); };
+$('#dlg-pop').addEventListener('close', () => ['#pop-info', '#pop-chart', '#pop-profile', '#pop-news'].forEach(s => $(s).innerHTML = ''));
+
+/* =====================================================================
+   NOTIFICATIONS (optionnelles)
+   ===================================================================== */
+const alerted = {};
+function checkAlerts(){
+  if (!state.notif || !('Notification' in window) || Notification.permission !== 'granted') return;
+  state.positions.forEach(p => {
+    const c = calc(p); if (c.src === 'none') return;
+    const hit = Math.abs(c.pct) >= state.thr;
+    if (hit && !alerted[p.id]){
+      alerted[p.id] = 1;
+      new Notification(`${p.name || p.symbol} : ${fmtPct(c.pct)}`, {body:'Plus / moins-value : ' + fmtSigned(c.pl)});
+    } else if (!hit) delete alerted[p.id];
+  });
+}
+
+/* =====================================================================
+   RAFRAÎCHISSEMENT AUTOMATIQUE
+   ===================================================================== */
+let timer;
+function setupTimer(){
+  clearInterval(timer);
+  if (state.refresh > 0) timer = setInterval(async () => { await fetchQuotes(); refreshNumbers(); }, state.refresh * 1000);
+}
+
+/* =====================================================================
+   THÈME
+   ===================================================================== */
+function setTheme(t){
+  state.theme = t; save(); document.documentElement.dataset.theme = t;
+  $('#d-theme').value = t;
+  // les widgets TradingView lisent le thème à la création → on les recrée
+  $$('.pcard').forEach(c => delete c.dataset.chartKey);
+  renderAll();
+}
+
+/* =====================================================================
+   RENDU GLOBAL
+   ===================================================================== */
+function renderModule(id){
+  if (id === 'tape') renderTape();
+  if (id === 'summary') updateSummary();
+  if (id === 'portfolio') renderPortfolio();
+  if (id === 'favorites') renderFavorites();
+  if (id === 'markets') renderMarkets();
+}
+function renderAll(){ Object.keys(PANELS).forEach(id => state.modules[id] && renderModule(id)); updateSummary(); setStatus(P('summary', '#pf-status').textContent); }
+
+/* =====================================================================
+   ÉVÉNEMENTS DE L'INTERFACE
+   ===================================================================== */
+function bindPanelEvents(){
+  P('portfolio', '#pf-add').onclick = () => openPosForm();
+  const favGo = () => { const i = P('favorites', '#fav-input'); addFavorite(i.value); i.value = ''; };
+  P('favorites', '#fav-add').onclick = favGo;
+  P('favorites', '#fav-input').addEventListener('keydown', e => { if (e.key === 'Enter') favGo(); });
+  const mk = panelEls.markets;
+  $('#mk-seg', mk).onclick = e => { const b = e.target.closest('button'); if (!b) return; state.view = b.dataset.v; save(); renderMarkets(); };
+  $('#mk-q', mk).addEventListener('input', () => { clearTimeout(bindPanelEvents.t); bindPanelEvents.t = setTimeout(renderMarkets, 250); });
+  $('#mk-country', mk).onchange = e => { state.country = e.target.value; save(); renderMarkets(); };
+  $('#mk-heatsrc', mk).onchange = e => { state.heatSrc = e.target.value; save(); renderMarkets(); };
+  $('#mk-heatperf', mk).onchange = e => { state.heatPerf = e.target.value; save(); renderMarkets(); };
+}
+// Note : renderMarkets() recrée la liste des pays à chaque appel ; on garde le texte de recherche tel quel.
+
+// Recherche globale (barre du haut)
+$('#gsearch').addEventListener('keydown', e => { if (e.key === 'Enter'){ openStock(e.target.value); e.target.value = ''; } });
+$('#gsearch').addEventListener('change', e => { if (UNIVERSE.some(u => u.s === e.target.value)){ openStock(e.target.value); e.target.value = ''; } });
+
+// Menu déroulant
+const menu = $('#menu-pop');
+$('#btn-menu').onclick = e => { e.stopPropagation(); menu.classList.toggle('open'); };
+document.addEventListener('click', e => { if (!e.target.closest('#menu-pop')) menu.classList.remove('open'); });
+$('#btn-theme').onclick = () => setTheme(state.theme === 'dark' ? 'light' : 'dark');
+menu.addEventListener('click', e => {
+  const b = e.target.closest('[data-m]'); if (!b) return; menu.classList.remove('open');
+  const m = b.dataset.m;
+  if (m === 'pos-add') openPosForm();
+  if (m === 'pos-edit') pick('Modifier quel investissement ?', posItems(), id => openPosForm(state.positions.find(p => p.id === id)));
+  if (m === 'pos-del') pick('Supprimer quel investissement ?', posItems(), deletePosition);
+  if (m === 'fav-add'){ $('#i-sym').value = ''; $('#dlg-input').showModal(); }
+  if (m === 'fav-del') pick('Retirer quel favori ?', state.favorites.map(f => ({value:f.symbol, label:nameOf(f.symbol), sub:f.symbol})), removeFavorite);
+  if (m === 'display') openDisplay();
+  if (m === 'lock') setLocked(!state.locked);
+  if (m === 'settings') openSettings();
+});
+const posItems = () => state.positions.map(p => ({value:p.id, label:p.name || p.symbol, sub:`${p.symbol} · ${p.qty} × ${p.buy} ${p.ccy}`}));
+function pick(title, items, cb){
+  $('#pick-title').textContent = title;
+  const l = $('#pick-list'); l.innerHTML = items.length ? '' : '<p class="muted">Rien à afficher.</p>';
+  items.forEach(it => {
+    const b = document.createElement('button'); b.className = 'pick-item';
+    b.innerHTML = `<b>${esc(it.label)}</b><small>${esc(it.sub || '')}</small>`;
+    b.onclick = () => { $('#dlg-pick').close(); cb(it.value); };
+    l.appendChild(b);
+  });
+  $('#dlg-pick').showModal();
+}
+$('#f-input').addEventListener('submit', e => { e.preventDefault(); addFavorite($('#i-sym').value); $('#dlg-input').close(); });
+
+// Fermeture générique des dialogues
+document.addEventListener('click', e => {
+  if (e.target.matches('[data-close]')) e.target.closest('dialog').close();
+  else if (e.target.tagName === 'DIALOG') e.target.close();   // clic sur le fond
+});
+
+// Dialogue Affichage
+function openDisplay(){
+  $$('#dlg-display [data-mod]').forEach(c => c.checked = !!state.modules[c.dataset.mod]);
+  $('#d-theme').value = state.theme; $('#d-tiles').value = state.tiles; $('#d-lock').checked = state.locked;
+  $('#dlg-display').showModal();
+}
+$('#dlg-display').addEventListener('change', e => {
+  const t = e.target;
+  if (t.dataset.mod) setModule(t.dataset.mod, t.checked);
+  if (t.id === 'd-theme') setTheme(t.value);
+  if (t.id === 'd-tiles'){ state.tiles = +t.value; save(); state.modules.markets && renderMarkets(); }
+  if (t.id === 'd-lock') setLocked(t.checked);
+});
+$('#d-reset').onclick = resetLayout;
+
+// Dialogue Paramètres
+function openSettings(){
+  $('#s-ccy').value = state.ccy; $('#s-refresh').value = state.refresh; $('#s-key').value = state.key;
+  $('#s-notif').checked = state.notif; $('#s-thr').value = state.thr;
+  $('#dlg-settings').showModal();
+}
+$('#dlg-settings').addEventListener('change', async e => {
+  const t = e.target;
+  if (t.id === 's-ccy'){ state.ccy = t.value; save(); refreshNumbers(); }
+  if (t.id === 's-refresh'){ state.refresh = +t.value; save(); setupTimer(); }
+  if (t.id === 's-key'){ state.key = t.value.trim(); save(); await fetchQuotes(); refreshNumbers(); }
+  if (t.id === 's-thr'){ state.thr = Math.max(1, +t.value || 5); save(); }
+  if (t.id === 's-notif'){
+    state.notif = t.checked;
+    if (t.checked && 'Notification' in window){
+      const r = await Notification.requestPermission();
+      if (r !== 'granted'){ state.notif = false; t.checked = false; toast('Notifications refusées par le navigateur'); }
+    }
+    save();
+  }
+});
+
+/* =====================================================================
+   DÉMARRAGE
+   ===================================================================== */
+buildPanels();
+bindFavDnD();
+bindPanelEvents();
+initGrid();
+setLocked(state.locked);
+renderAll();
+fetchFx().then(() => { refreshNumbers(); });
+fetchQuotes().then(refreshNumbers);
+setupTimer();
+</script>
+</body>
+</html>
