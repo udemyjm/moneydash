@@ -17,6 +17,9 @@
   },
   {
    "symbol": "EURONEXT:OR"
+  },
+  {
+   "symbol": "EURONEXT:WLN"
   }
  ],
  "heatPerf": "change",
