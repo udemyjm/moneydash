@@ -1,13 +1,16 @@
 {
  "ccy": "EUR",
  "country": "ALL",
- "favView": "table",
+ "favView": "manage",
  "favorites": [
   {
    "symbol": "NASDAQ:NVDA"
   },
   {
    "symbol": "NASDAQ:MSFT"
+  },
+  {
+   "symbol": "EURONEXT:WLN"
   },
   {
    "symbol": "NASDAQ:TSLA"
@@ -17,9 +20,6 @@
   },
   {
    "symbol": "EURONEXT:OR"
-  },
-  {
-   "symbol": "EURONEXT:WLN"
   }
  ],
  "heatPerf": "change",
@@ -28,8 +28,8 @@
  "layout": {
   "favorites": {
    "h": 4,
-   "w": 5,
-   "x": 7,
+   "w": 6,
+   "x": 6,
    "y": 1
   },
   "markets": {
@@ -40,7 +40,7 @@
   },
   "portfolio": {
    "h": 7,
-   "w": 7,
+   "w": 12,
    "x": 0,
    "y": 5
   },
@@ -57,7 +57,7 @@
   }
  },
  "layoutV": 3,
- "locked": false,
+ "locked": true,
  "modules": {
   "favorites": true,
   "markets": true,
