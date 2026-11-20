@@ -23,7 +23,7 @@
  "key": "",
  "layout": {},
  "layoutV": 3,
- "locked": true,
+ "locked": false,
  "modules": {
   "favorites": true,
   "markets": true,
