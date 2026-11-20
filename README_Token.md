@@ -4,7 +4,7 @@ GitHub → Settings → Developer settings → Fine-grained tokens → Generate 
 Token name : dashboard-bourse (le nom est libre).
 Description : facultative. Tu peux mettre « Sync config dashboard ».
 Resource owner : laisse udemyjm, c’est ton compte.
-Expiration : 30 jours par défaut, soit jusqu’au 20 décembre. Passe à 90 jours ou 1 an (« Custom ») pour ne pas le recréer trop souvent. À la date d’expiration, le bouton ☁ passera en « erreur » et il faudra générer un nouveau jeton.
+Expiration : 30 jours par défaut, soit jusqu’au 20 décembre. Passe à 90 jours (« Custom ») pour ne pas le recréer trop souvent. À la date d’expiration, le bouton ☁ passera en « erreur » et il faudra générer un nouveau jeton.
 Repository access : choisis « Only select repositories », puis sélectionne ton dépôt du dashboard. « Public repositories » ne convient pas, car c’est en lecture seule : la sauvegarde échouerait.
 Permissions : une fois « Only select repositories » choisi, une section Repository permissions apparaît. Clique sur « Add permissions », coche Contents, puis mets Access : Read and write. « Metadata : Read-only » s’ajoute tout seul et c’est normal. Ne touche pas aux « Account permissions ».
 Clique ensuite sur Generate token et copie-le tout de suite (github_pat_…) : GitHub ne l’affiche qu’une fois.
