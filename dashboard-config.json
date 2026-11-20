@@ -4,6 +4,9 @@
  "favView": "manage",
  "favorites": [
   {
+   "symbol": "NASDAQ:ANT"
+  },
+  {
    "symbol": "NASDAQ:NVDA"
   },
   {
@@ -20,9 +23,6 @@
   },
   {
    "symbol": "EURONEXT:OR"
-  },
-  {
-   "symbol": "NASDAQ:ANT"
   }
  ],
  "heatPerf": "change",
