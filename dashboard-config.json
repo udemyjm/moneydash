@@ -1,7 +1,7 @@
 {
  "ccy": "EUR",
  "country": "FR",
- "favView": "table",
+ "favView": "manage",
  "favorites": [
   {
    "symbol": "NASDAQ:NVDA"
