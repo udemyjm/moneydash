@@ -57,7 +57,7 @@
   }
  },
  "layoutV": 3,
- "locked": false,
+ "locked": true,
  "modules": {
   "favorites": true,
   "markets": true,
