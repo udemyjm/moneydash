@@ -93,7 +93,7 @@ body.dragging iframe{pointer-events:none}
 .sum .note{flex-basis:100%;margin:0}
 .donut-wrap svg{width:130px;height:130px;transform:rotate(-90deg);flex:none}
 .donut-wrap ul{list-style:none;margin:0;padding:0;flex:1;min-width:130px;font-size:13px}
-.donut-wrap li{display:flex;align-items:center;gap:8px;padding:3px 0}
+.donut-wrap li{cursor:pointer;display:flex;align-items:center;gap:8px;padding:3px 0}
 .donut-wrap li i{width:10px;height:10px;border-radius:3px;flex:none}
 .donut-wrap li span{margin-left:auto;color:var(--muted)}
 .note{font-size:12px;color:var(--muted);margin:14px 0 0}
@@ -101,15 +101,17 @@ body.dragging iframe{pointer-events:none}
 /* ============ PORTEFEUILLE ============ */
 .panel-body.fill{display:flex;flex-direction:column}
 .fill>*{flex:1 0 auto}
-.pf-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-auto-rows:minmax(380px,1fr);gap:14px}
+.pf-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-auto-rows:minmax(430px,1fr);gap:14px}
 .pcard{background:var(--panel2);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .pcard.up{border-top-color:var(--up)} .pcard.down{border-top-color:var(--down)}
 .pc-head{display:flex;align-items:center;gap:8px}
 .pc-name{font-weight:600}
+.pc-title{cursor:pointer;min-width:0}
+.pc-title:hover .pc-name{text-decoration:underline}
 .pc-tick{font-size:12px;color:var(--muted)}
 .pc-badge{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
 .pc-tools{display:flex}
-.pc-chart{flex:1;min-height:170px;border-radius:10px;overflow:hidden}
+.pc-chart{flex:1;min-height:230px;border-radius:10px;overflow:hidden}
 .pc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pc-stats span{display:block;font-size:11px;color:var(--muted)}
 .pc-stats b{font-size:14px}
@@ -140,7 +142,9 @@ body.dragging iframe{pointer-events:none}
 .frow.dragged{opacity:.4}
 .f-grip{cursor:grab;display:grid;place-items:center;height:100%}
 .f-grip svg{width:14px;height:14px;fill:var(--muted)}
-.f-w{height:100%;min-width:0;overflow:hidden}
+.f-w{position:relative;height:100%;min-width:0;overflow:hidden}
+.f-hit{position:absolute;inset:0;background:transparent;border:0;cursor:pointer}
+.fav-chips{flex:none!important;display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:12px;font-size:12px}
 .f-actions{display:flex;justify-content:flex-end}
 
 /* ============ MARCHÉS ============ */
@@ -704,7 +708,7 @@ function renderPortfolio(){
 function createCard(p){
   const c = html(`<article class="pcard" data-id="${p.id}">
     <div class="pc-head">
-      <div><div class="pc-name"></div><div class="pc-tick"></div></div>
+      <div class="pc-title" title="Voir les détails"><div class="pc-name"></div><div class="pc-tick"></div></div>
       <span class="pc-badge"></span>
       <div class="pc-tools">
         <button class="icon" data-act="info" title="Détails">${I.info}</button>
@@ -719,8 +723,9 @@ function createCard(p){
       <div><span>Plus / moins-value</span><b class="s-pl"></b></div>
     </div></article>`);
   c.addEventListener('click', e => {
-    const b = e.target.closest('[data-act]'); if (!b) return;
+    const b = e.target.closest('[data-act]');
     const pos = state.positions.find(x => x.id === c.dataset.id); if (!pos) return;
+    if (!b){ if (e.target.closest('.pc-title')) openStock(pos.symbol); return; }
     if (b.dataset.act === 'info') openStock(pos.symbol);
     if (b.dataset.act === 'edit') openPosForm(pos);
     if (b.dataset.act === 'del') deletePosition(pos.id);
@@ -743,18 +748,16 @@ function updateCard(card, p){
   else { pl.innerHTML = `${fmtSigned(c.pl)}<br><small>${fmtPct(c.pct)}</small>`; pl.className = 's-pl ' + (up ? 'up' : 'down'); }
   if (c.src === 'none'){ card.classList.remove('up', 'down'); }
   // Le graphique n'est reconstruit que si le symbole, le thème ou la couleur change
-  const key = [p.symbol, state.theme, up ? 'u' : 'd'].join('|');
+  // Graphique avec curseur : en survolant la courbe, la légende en haut à gauche affiche les valeurs (ouverture, haut, bas, clôture)
+  const key = [p.symbol, state.theme].join('|');
   const ch = $('.pc-chart', card);
   if (card.dataset.chartKey !== key){
     card.dataset.chartKey = key;
-    const col = up ? '#22ab94' : '#f7525f', rgb = up ? '34,171,148' : '247,82,95';
-    lazy(ch, () => tvWidget(ch, 'symbol-overview', {
-      symbols:[[p.name || p.symbol, widgetSym(p.symbol) + '|12M']],
-      chartType:'area', lineWidth:2, lineType:0, lineColor:col,
-      topColor:`rgba(${rgb},0.35)`, bottomColor:`rgba(${rgb},0)`,
-      valuesTracking:'1', changeMode:'price-and-percent', autosize:true, chartOnly:false,
-      dateRanges:['1d|1','1m|30','3m|60','12m|1D','60m|1W','all|1M'],
-      fontSize:'10', headerFontSize:'medium', noTimeScale:false, hideDateRanges:false, hideMarketStatus:false, hideSymbolLogo:false
+    if (noWidget(p.symbol)) ch.innerHTML = `<div class="empty">Graphique non disponible pour cette bourse.<br><a href="${tvUrl(p.symbol)}" target="_blank" rel="noopener" style="color:var(--accent)">Voir sur TradingView ↗</a></div>`;
+    else lazy(ch, () => tvWidget(ch, 'advanced-chart', {
+      symbol:widgetSym(p.symbol), interval:'D', range:'12M', style:'3', timezone:'Europe/Paris', theme:state.theme, autosize:true,
+      hide_top_toolbar:true, hide_side_toolbar:true, hide_legend:false, hide_volume:true, allow_symbol_change:false,
+      save_image:false, withdateranges:true, details:false, calendar:false
     }));
   }
 }
@@ -763,7 +766,7 @@ function updateCard(card, p){
 const COLORS = ['#2f5bff','#22ab94','#f7525f','#f5a623','#a855f7','#06b6d4'];
 function updateSummary(){
   let inv = 0, val = 0; const items = [];
-  state.positions.forEach(p => { const c = calc(p); inv += c.invested; val += c.value; items.push({n:p.name || p.symbol, v:c.value}); });
+  state.positions.forEach(p => { const c = calc(p); inv += c.invested; val += c.value; items.push({n:p.name || p.symbol, v:c.value, s:p.symbol}); });
   const missing = state.positions.filter(p => priceOf(p).src === 'none').length;
   P('summary', '#pf-warn').textContent = missing
     ? `⚠ ${missing} position(s) sans cours actuel : elles comptent au prix d'achat (gain 0). Renseigne le cours actuel avec le crayon ✎ de la carte pour voir la plus-value.` : '';
@@ -778,7 +781,7 @@ function updateSummary(){
     const share = val > 0 ? it.v / val * 100 : 0;
     svg += `<circle cx="21" cy="21" r="15.9155" fill="none" stroke="${COLORS[i]}" stroke-width="5" stroke-dasharray="${share} ${100 - share}" stroke-dashoffset="${off}"/>`;
     off -= share;
-    leg += `<li><i style="background:${COLORS[i]}"></i>${esc(it.n)}<span>${share.toFixed(0)} %</span></li>`;
+    leg += `<li data-sym="${esc(it.s)}" title="Voir les détails"><i style="background:${COLORS[i]}"></i>${esc(it.n)}<span>${share.toFixed(0)} %</span></li>`;
   });
   P('summary', '#s-donut').innerHTML = svg;
   P('summary', '#s-legend').innerHTML = leg || '<li class="muted">Répartition indisponible</li>';
@@ -872,6 +875,12 @@ function renderFavorites(){
     });
     grip.addEventListener('dblclick', () => { state.favTableW = null; wrap.style.width = '100%'; save(); window.dispatchEvent(new Event('resize')); });
     host.appendChild(wrap);
+    const chips = html('<div class="fav-chips"><span class="muted">Fiche détaillée :</span></div>');
+    state.favorites.forEach(f => {
+      const b = html(`<button class="btn sm">${esc(nameOf(f.symbol))}</button>`);
+      b.onclick = () => openStock(f.symbol); chips.appendChild(b);
+    });
+    host.appendChild(chips);
     tvWidget(box, 'market-quotes', {
       showSymbolLogo:true, backgroundColor:'rgba(0,0,0,0)',
       symbolsGroups:[{name:'Favoris', originalName:'Favoris', symbols:state.favorites.map(f => ({name:widgetSym(f.symbol), displayName:nameOf(f.symbol) + (isAdr(f.symbol) ? ' (US)' : '')}))}]
@@ -889,8 +898,9 @@ function renderFavorites(){
         <button class="icon" data-act="rm" title="Retirer des favoris">${I.del}</button>
       </div></div>`);
     const w = $('.f-w', row);
-    if (noWidget(f.symbol)) w.innerHTML = `<a href="${tvUrl(f.symbol)}" target="_blank" rel="noopener" style="color:var(--accent);display:block;padding-top:24px;font-size:12px">${esc(nameOf(f.symbol))} · cours sur TradingView ↗</a>`;
+    if (noWidget(f.symbol)) w.innerHTML = `<div style="padding-top:24px;font-size:13px"><b>${esc(nameOf(f.symbol))}</b> <span class="muted">· cours non disponible ici</span></div>`;
     else lazy(w, () => tvWidget(w, 'single-quote', {symbol:widgetSym(f.symbol)}));
+    w.appendChild(html('<button class="f-hit" data-act="info" title="Voir les détails"></button>'));
     // la ligne n'est "draggable" que quand on saisit la poignée (sinon l'iframe gêne)
     $('.f-grip', row).addEventListener('mousedown', () => row.draggable = true);
     row.addEventListener('click', e => {
@@ -1076,6 +1086,7 @@ function renderAll(){ Object.keys(PANELS).forEach(id => state.modules[id] && ren
    ÉVÉNEMENTS DE L'INTERFACE
    ===================================================================== */
 function bindPanelEvents(){
+  P('summary', '#s-legend').addEventListener('click', e => { const li = e.target.closest('li[data-sym]'); if (li) openStock(li.dataset.sym); });
   P('portfolio', '#pf-add').onclick = () => openPosForm();
   const favGo = () => { const i = P('favorites', '#fav-input'); resolveSymbol(i.value, addFavorite); i.value = ''; };
   P('favorites', '#fav-add').onclick = favGo;
