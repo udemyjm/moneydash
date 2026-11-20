@@ -1,7 +1,7 @@
 {
  "ccy": "EUR",
  "country": "FR",
- "favView": "manage",
+ "favView": "table",
  "favorites": [
   {
    "symbol": "NASDAQ:ANT"
