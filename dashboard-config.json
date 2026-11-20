@@ -1,0 +1,60 @@
+{
+ "ccy": "EUR",
+ "country": "ALL",
+ "favorites": [
+  {
+   "symbol": "NASDAQ:NVDA"
+  },
+  {
+   "symbol": "NASDAQ:MSFT"
+  },
+  {
+   "symbol": "NASDAQ:TSLA"
+  },
+  {
+   "symbol": "NASDAQ:AAPL"
+  },
+  {
+   "symbol": "EURONEXT:OR"
+  }
+ ],
+ "heatPerf": "change",
+ "heatSrc": "SPX500",
+ "key": "",
+ "layout": {},
+ "layoutV": 3,
+ "locked": true,
+ "modules": {
+  "favorites": true,
+  "markets": true,
+  "portfolio": true,
+  "summary": true,
+  "tape": true
+ },
+ "notif": false,
+ "positions": [
+  {
+   "buy": 910.48,
+   "ccy": "EUR",
+   "id": "3pscdah",
+   "manual": 697.6,
+   "name": "ASM International",
+   "qty": 0.010983,
+   "symbol": "EURONEXT:ASM"
+  },
+  {
+   "buy": 240.98,
+   "ccy": "EUR",
+   "id": "4lvj7x4",
+   "manual": 216.61,
+   "name": "Take-Two Interactive",
+   "qty": 0.041497,
+   "symbol": "NASDAQ:TTWO"
+  }
+ ],
+ "refresh": 60,
+ "theme": "dark",
+ "thr": 5,
+ "tiles": 12,
+ "view": "tiles"
+}
