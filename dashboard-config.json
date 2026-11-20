@@ -20,6 +20,9 @@
   },
   {
    "symbol": "EURONEXT:OR"
+  },
+  {
+   "symbol": "NASDAQ:ANT"
   }
  ],
  "heatPerf": "change",
