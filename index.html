@@ -590,7 +590,7 @@ function buildPanels(){
 
   panelEls.portfolio = html(`<section class="panel">
     <header class="panel-head"><h3>${I.chart}Investissements</h3>
-      <div class="tools"><button class="btn primary sm" id="pf-add">+ Ajouter</button></div></header>
+      <div class="tools"><button class="btn sm" id="pf-reload" title="Recharger les graphiques">⟳ Graphiques</button><button class="btn primary sm" id="pf-add">+ Ajouter</button></div></header>
     <div class="panel-body fill"><div class="pf-list" id="pf-list"></div></div></section>`);
 
   panelEls.favorites = html(`<section class="panel">
@@ -636,6 +636,11 @@ function initGrid(){
   grid.on('dragstart resizestart', () => document.body.classList.add('dragging'));
   grid.on('dragstop resizestop',  () => document.body.classList.remove('dragging'));
   grid.on('change', saveLayout);
+  // Garde-fou : si un déplacement / redimensionnement se termine sans que l'événement "stop" arrive (souris relâchée hors de la fenêtre…),
+  // les graphiques resteraient insensibles à la souris. On débloque dès qu'un bouton est relâché ou que la souris bouge sans bouton enfoncé.
+  const unstick = () => document.body.classList.remove('dragging');
+  ['mouseup', 'pointerup', 'touchend', 'dragend', 'blur'].forEach(ev => window.addEventListener(ev, unstick, true));
+  document.addEventListener('mousemove', e => { if (e.buttons === 0) unstick(); }, true);
   // après un déplacement / redimensionnement, on prévient les widgets TradingView pour qu'ils se recalent
   grid.on('resizestop dragstop', () => setTimeout(() => window.dispatchEvent(new Event('resize')), 120));
   Object.keys(PANELS).forEach(id => state.modules[id] && mountPanel(id));
@@ -1088,6 +1093,7 @@ function renderAll(){ Object.keys(PANELS).forEach(id => state.modules[id] && ren
 function bindPanelEvents(){
   P('summary', '#s-legend').addEventListener('click', e => { const li = e.target.closest('li[data-sym]'); if (li) openStock(li.dataset.sym); });
   P('portfolio', '#pf-add').onclick = () => openPosForm();
+  P('portfolio', '#pf-reload').onclick = () => { $$('.pcard').forEach(c => delete c.dataset.chartKey); renderPortfolio(); toast('Graphiques rechargés'); };
   const favGo = () => { const i = P('favorites', '#fav-input'); resolveSymbol(i.value, addFavorite); i.value = ''; };
   P('favorites', '#fav-add').onclick = favGo;
   P('favorites', '#fav-input').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); favGo(); } });
