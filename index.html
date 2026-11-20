@@ -99,7 +99,9 @@ body.dragging iframe{pointer-events:none}
 .note{font-size:12px;color:var(--muted);margin:14px 0 0}
 
 /* ============ PORTEFEUILLE ============ */
-.pf-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px}
+.panel-body.fill{display:flex;flex-direction:column}
+.fill>*{flex:1 0 auto}
+.pf-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));grid-auto-rows:minmax(380px,1fr);gap:14px}
 .pcard{background:var(--panel2);border:1px solid var(--line);border-top:3px solid var(--line);border-radius:14px;padding:12px 14px;display:flex;flex-direction:column;gap:8px}
 .pcard.up{border-top-color:var(--up)} .pcard.down{border-top-color:var(--down)}
 .pc-head{display:flex;align-items:center;gap:8px}
@@ -107,7 +109,7 @@ body.dragging iframe{pointer-events:none}
 .pc-tick{font-size:12px;color:var(--muted)}
 .pc-badge{margin-left:auto;font-size:11px;padding:2px 8px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
 .pc-tools{display:flex}
-.pc-chart{height:210px;border-radius:10px;overflow:hidden}
+.pc-chart{flex:1;min-height:170px;border-radius:10px;overflow:hidden}
 .pc-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .pc-stats span{display:block;font-size:11px;color:var(--muted)}
 .pc-stats b{font-size:14px}
@@ -117,31 +119,36 @@ body.dragging iframe{pointer-events:none}
 .pc-price input:disabled{opacity:.6}
 .pc-badge.warn{color:#f5a623;border-color:#f5a623}
 .warn-note{color:#f5a623}
+.key-banner{flex-basis:100%;display:flex;flex-direction:column;gap:6px;background:var(--panel2);border:1px dashed var(--accent);border-radius:12px;padding:12px 14px;font-size:13px}
+.key-banner span{color:var(--muted)} .key-banner a{color:var(--accent)}
+.key-row{display:flex;gap:8px}.key-row input{flex:1}
+.sum .key-banner.hide{display:none}
 .empty{padding:40px 10px;text-align:center;color:var(--muted)}
 
 /* ============ FAVORIS ============ */
-.frow{position:relative;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:8px 10px;margin-bottom:10px}
-.frow.drop-before{box-shadow:0 -3px 0 var(--accent)} .frow.drop-after{box-shadow:0 3px 0 var(--accent)}
+.ftable{--fav-row:76px}
+.fhead,.frow{display:grid;grid-template-columns:24px minmax(0,1fr) 94px;align-items:center;gap:8px}
+.fhead{padding:0 6px 8px;font-size:11.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-bottom:1px solid var(--line)}
+.frow{height:var(--fav-row);padding:0 6px;border-bottom:1px solid var(--line);transition:background .15s}
+.frow:hover{background:var(--panel2)}
+.frow.drop-before{box-shadow:0 -2px 0 var(--accent)} .frow.drop-after{box-shadow:0 2px 0 var(--accent)}
 .frow.dragged{opacity:.4}
-.f-top{display:flex;align-items:center;gap:8px}
-.f-grip{cursor:grab;color:var(--muted);display:grid;place-items:center;width:22px}
+.f-grip{cursor:grab;display:grid;place-items:center;height:100%}
 .f-grip svg{width:14px;height:14px;fill:var(--muted)}
-.f-info{flex:1;min-width:0;cursor:pointer}
-.f-info b{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.f-info small{color:var(--muted)}
-.f-quote{height:92px;margin-top:4px;overflow:hidden}
+.f-w{height:100%;min-width:0;overflow:hidden}
+.f-actions{display:flex;justify-content:flex-end}
 
 /* ============ MARCHÉS ============ */
 .mk-tools{display:none;gap:8px;align-items:center;flex-wrap:wrap}
 [data-view="tiles"] .mk-tiles-tools,[data-view="heat"] .mk-heat-tools{display:flex}
-.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px}
-.tile{position:relative;height:124px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s}
+.tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));grid-auto-rows:minmax(124px,1fr);gap:12px}
+.tile{position:relative;min-height:124px;background:var(--panel2);border:1px solid var(--line);border-radius:14px;overflow:hidden;transition:.15s}
 .tile:hover{border-color:var(--accent);transform:translateY(-2px)}
-.tile .w{height:100%}
+.tile .w{position:absolute;inset:0}
 .tile-hit{position:absolute;inset:0;background:transparent;border:0;cursor:pointer}
 .tile-open{display:flex;align-items:center;justify-content:center;font-weight:600;color:var(--accent);cursor:pointer}
-.heat{height:100%;min-height:420px}
-.count{font-size:12px;color:var(--muted);margin:0 0 10px}
+.heat{flex:1 0 auto;min-height:260px}
+.count{flex:none!important;font-size:12px;color:var(--muted);margin:0 0 10px}
 
 /* ============ PIED DE PAGE ============ */
 .foot{padding:4px 22px 24px;color:var(--muted);font-size:12px;display:flex;gap:6px;flex-wrap:wrap}
@@ -178,6 +185,7 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
 .pop-profile,.pop-news{height:420px}
 @media(max-width:800px){.pop-body{grid-template-columns:1fr}.row3{grid-template-columns:1fr}}
 
+.chip-ok{color:var(--up)} .chip-err{color:var(--down)} .chip-wait{color:#f5a623}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel);border:1px solid var(--line);padding:10px 18px;border-radius:12px;opacity:0;transition:.25s;z-index:200;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .toast.show{opacity:1;transform:translateX(-50%)}
 @media(max-width:700px){.topbar{flex-wrap:wrap}.search{order:3;max-width:none;flex-basis:100%;margin:0}}
@@ -190,9 +198,10 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
   <div class="logo"><i><svg viewBox="0 0 24 24"><path d="M4 10h3v10H4zM10 4h3v16h-3zM16 8h3v12h-3z"/></svg></i>Trader</div>
   <label class="search">
     <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-    <input id="gsearch" list="symlist" placeholder="Rechercher une action : nom ou symbole (ex : NASDAQ:AAPL, EURONEXT:MC)…" autocomplete="off">
+    <input id="gsearch" list="symlist" placeholder="Rechercher une action : nom, ou symbole BOURSE:TICKER (ex : EURONEXT:ASML)…" autocomplete="off">
   </label>
   <div class="top-right">
+    <button class="btn sm" id="gh-chip" title="Synchronisation GitHub">☁ GitHub</button>
     <button class="btn icon-only" id="btn-theme" title="Changer de thème">◐</button>
     <button class="btn primary" id="btn-menu">☰ Menu ▾</button>
     <div class="menu-pop" id="menu-pop">
@@ -206,7 +215,9 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
       <button data-m="display">Modules, tuiles, thème…</button>
       <button data-m="lock" id="m-lock">Verrouiller la disposition</button>
       <div class="mh">Paramètres</div>
-      <button data-m="settings">Devise, rafraîchissement, notifications…</button>
+      <button data-m="settings">Devise, notifications…</button>
+      <button data-m="gh">Synchronisation GitHub (automatique)</button>
+      <button data-m="config">Sauvegarder / restaurer (fichier)</button>
     </div>
   </div>
 </header>
@@ -231,9 +242,9 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
     <label>Montant investi<input id="p-amt" type="number" step="any" min="0"></label>
   </div>
   <label>Devise de cotation (celle du prix d'achat)
-    <select id="p-ccy"><option>EUR</option><option>USD</option><option>GBP</option></select></label>
-  <label>Cours actuel manuel (optionnel)<input id="p-man" type="number" step="any" min="0" placeholder="Utilisé si aucune clé API ou action hors USA"></label>
-  <small>Renseigne 2 des 3 champs prix / quantité / montant, le 3<sup>e</sup> est calculé.</small>
+    <select id="p-ccy"><option>EUR</option><option>USD</option><option>GBP</option><option>JPY</option></select></label>
+  <label>Cours actuel (pour calculer la plus-value)<input id="p-man" type="number" step="any" min="0" placeholder="Cours d'aujourd'hui, dans la devise ci-dessus"></label>
+  <small>Renseigne 2 des 3 champs prix / quantité / montant, le 3<sup>e</sup> est calculé. Londres cote en pence (GBX) : divise par 100 pour saisir en £.</small>
   <div class="dlg-actions"><button type="button" class="btn ghost" data-close>Annuler</button><button class="btn primary">Enregistrer</button></div>
 </form></dialog>
 
@@ -245,7 +256,7 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
 
 <dialog id="dlg-pick"><div class="dlg-form">
   <h2 id="pick-title"></h2><div id="pick-list"></div>
-  <div class="dlg-actions"><button type="button" class="btn ghost" data-close>Fermer</button></div>
+  <div class="dlg-actions"><button type="button" class="btn ghost" data-close autofocus>Fermer</button></div>
 </div></dialog>
 
 <dialog id="dlg-display"><div class="dlg-form">
@@ -257,7 +268,7 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
   <label class="check"><input type="checkbox" data-mod="markets"> Marchés mondiaux</label>
   <label>Thème<select id="d-theme"><option value="dark">Sombre</option><option value="light">Clair</option></select></label>
   <label>Nombre de tuiles affichées (module Marchés)
-    <select id="d-tiles"><option>12</option><option>24</option><option>36</option><option>48</option><option>60</option></select></label>
+    <select id="d-tiles"><option>12</option><option>24</option><option>36</option><option>48</option><option>60</option><option>100</option></select></label>
   <label class="check"><input type="checkbox" id="d-lock"> Verrouiller la disposition (plus de déplacement / redimensionnement)</label>
   <small>Astuce : déplace un panneau en le saisissant par son titre, redimensionne-le avec le coin en bas à droite.</small>
   <div class="dlg-actions"><button type="button" class="btn danger" id="d-reset">Réinitialiser la disposition</button><button type="button" class="btn primary" data-close>OK</button></div>
@@ -266,16 +277,48 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
 <dialog id="dlg-settings"><div class="dlg-form">
   <h2>Paramètres</h2>
   <label>Devise d'affichage
-    <select id="s-ccy"><option value="EUR">€ Euro</option><option value="USD">$ Dollar</option><option value="GBP">£ Livre</option></select></label>
-  <label>Rafraîchissement automatique des cours du portefeuille
-    <select id="s-refresh"><option value="0">Désactivé</option><option value="30">30 secondes</option><option value="60">1 minute</option><option value="300">5 minutes</option></select></label>
-  <label>Clé API Finnhub (optionnelle)
-    <input id="s-key" type="password" placeholder="Colle ta clé gratuite ici" autocomplete="off"></label>
-  <small>Gratuit sur <b>finnhub.io</b> (inscription par e-mail). Limite : 60 appels/minute, actions cotées aux <b>États-Unis uniquement</b>. Sans clé, saisis le cours actuel à la main (les graphiques TradingView restent à jour d'eux-mêmes). La clé reste dans ton navigateur (localStorage).</small>
+    <select id="s-ccy"><option value="EUR">€ Euro</option><option value="USD">$ Dollar</option><option value="GBP">£ Livre</option><option value="JPY">¥ Yen</option></select></label>
   <label class="check"><input type="checkbox" id="s-notif"> Notifications du navigateur</label>
   <label>Notifier quand une position dépasse ± (%)<input id="s-thr" type="number" min="1" step="1"></label>
   <small id="s-fxinfo"></small>
   <div class="dlg-actions"><button type="button" class="btn primary" data-close>OK</button></div>
+</div></dialog>
+
+<dialog id="dlg-gh"><div class="dlg-form" style="width:min(560px,94vw)">
+  <h2>Synchronisation GitHub</h2>
+  <small>Chaque modification est enregistrée dans un fichier de ton dépôt (<b>dashboard-config.json</b>). Sur n'importe quel appareil, le dashboard recharge ce fichier au démarrage.</small>
+  <div class="row3" style="grid-template-columns:1fr 1fr">
+    <label>Propriétaire (compte GitHub)<input id="g-owner" placeholder="ton-pseudo"></label>
+    <label>Dépôt<input id="g-repo" placeholder="mon-dashboard"></label>
+    <label>Branche<input id="g-branch" placeholder="main"></label>
+    <label>Fichier<input id="g-path" placeholder="dashboard-config.json"></label>
+  </div>
+  <label>Jeton d'accès (token) — nécessaire pour ENREGISTRER, pas pour lire un dépôt public
+    <input id="g-token" type="password" placeholder="github_pat_…" autocomplete="off"></label>
+  <label class="check"><input type="checkbox" id="g-auto"> Enregistrer automatiquement quelques secondes après chaque modification</label>
+  <small><b>Créer le jeton :</b> GitHub → Settings → Developer settings → Fine-grained tokens → Generate. Choisis <i>Only select repositories</i> (ton dépôt seulement) et la permission <i>Contents : Read and write</i>. Le jeton reste uniquement dans ce navigateur (jamais dans le code ni dans la config) : à coller une fois par appareil. Sans jeton, l'appareil est en <b>lecture seule</b>.</small>
+  <small>Pour ne pas retaper propriétaire / dépôt sur chaque appareil, remplis une fois la constante <code>GITHUB</code> en haut du script.</small>
+  <small id="g-msg"></small>
+  <div class="dlg-actions" style="justify-content:flex-start;flex-wrap:wrap">
+    <button type="button" class="btn primary" id="g-save">Enregistrer les réglages & synchroniser</button>
+    <button type="button" class="btn" id="g-push">Envoyer vers GitHub</button>
+    <button type="button" class="btn" id="g-pull">Charger depuis GitHub</button>
+    <button type="button" class="btn ghost" data-close>Fermer</button>
+  </div>
+</div></dialog>
+
+<dialog id="dlg-config"><div class="dlg-form" style="width:min(640px,94vw)">
+  <h2>Sauvegarder / restaurer la configuration</h2>
+  <small>Tes positions, favoris, disposition et thème sont gardés dans ce navigateur. Pour les retrouver partout, enregistre-les <b>dans ton fichier HTML</b> : télécharge le HTML configuré, remplace ton fichier (ou celui de GitHub), et ta config s'applique sur n'importe quel appareil.</small>
+  <textarea id="c-json" rows="9" spellcheck="false" style="background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px;color:var(--text);font:12px/1.4 ui-monospace,Consolas,monospace;resize:vertical"></textarea>
+  <div class="dlg-actions" style="justify-content:flex-start;flex-wrap:wrap">
+    <button type="button" class="btn primary" id="c-html">Télécharger le HTML configuré</button>
+    <button type="button" class="btn" id="c-dl">Télécharger la config (.json)</button>
+    <button type="button" class="btn" id="c-copy">Copier</button>
+    <button type="button" class="btn" id="c-apply">Appliquer le JSON collé</button>
+  </div>
+  <small id="c-msg"></small>
+  <div class="dlg-actions"><button type="button" class="btn ghost" data-close>Fermer</button></div>
 </div></dialog>
 
 <dialog id="dlg-pop">
@@ -285,7 +328,7 @@ dialog::backdrop{background:rgba(0,0,0,.6);backdrop-filter:blur(3px)}
       <div class="sp">
         <button class="btn" id="pop-fav"></button>
         <button class="btn primary" id="pop-pf">+ Ajouter au portefeuille</button>
-        <button class="btn ghost" data-close>✕ Fermer</button>
+        <button class="btn ghost" data-close autofocus>✕ Fermer</button>
       </div>
     </div>
     <div class="pop-body">
@@ -326,61 +369,20 @@ const I = { // petites icônes SVG
    → sert aux tuiles du module Marchés et à l'autocomplétion.
    Pour n'importe quelle autre action, saisis son symbole BOURSE:TICKER.
    ===================================================================== */
+// Format compact : 'TICKER|Nom;TICKER|Nom;…' → liste d'objets {s:symbole TradingView, n:nom, c:pays}
+const L = (c, ex, str) => str.split(';').map(x => { const [t, n] = x.split('|'); return {s:ex + ':' + t.trim(), n:n.trim(), c}; });
 const UNIVERSE = [
-  // États-Unis
-  {s:'NASDAQ:AAPL',n:'Apple',c:'US'},{s:'NASDAQ:MSFT',n:'Microsoft',c:'US'},{s:'NASDAQ:NVDA',n:'NVIDIA',c:'US'},
-  {s:'NASDAQ:AMZN',n:'Amazon',c:'US'},{s:'NASDAQ:GOOGL',n:'Alphabet (Google)',c:'US'},{s:'NASDAQ:META',n:'Meta Platforms',c:'US'},
-  {s:'NASDAQ:TSLA',n:'Tesla',c:'US'},{s:'NASDAQ:NFLX',n:'Netflix',c:'US'},{s:'NASDAQ:AMD',n:'AMD',c:'US'},{s:'NASDAQ:INTC',n:'Intel',c:'US'},
-  {s:'NASDAQ:AVGO',n:'Broadcom',c:'US'},{s:'NASDAQ:CSCO',n:'Cisco',c:'US'},{s:'NASDAQ:ADBE',n:'Adobe',c:'US'},{s:'NASDAQ:QCOM',n:'Qualcomm',c:'US'},
-  {s:'NASDAQ:AMGN',n:'Amgen',c:'US'},{s:'NASDAQ:TXN',n:'Texas Instruments',c:'US'},{s:'NASDAQ:PEP',n:'PepsiCo',c:'US'},
-  {s:'NASDAQ:COST',n:'Costco',c:'US'},{s:'NASDAQ:TMUS',n:'T-Mobile US',c:'US'},{s:'NASDAQ:SBUX',n:'Starbucks',c:'US'},
-  {s:'NASDAQ:BKNG',n:'Booking Holdings',c:'US'},{s:'NASDAQ:PYPL',n:'PayPal',c:'US'},{s:'NASDAQ:INTU',n:'Intuit',c:'US'},
-  {s:'NASDAQ:ADP',n:'Automatic Data Processing',c:'US'},{s:'NASDAQ:VRTX',n:'Vertex Pharmaceuticals',c:'US'},{s:'NASDAQ:GILD',n:'Gilead Sciences',c:'US'},
-  {s:'NASDAQ:REGN',n:'Regeneron',c:'US'},{s:'NASDAQ:MU',n:'Micron Technology',c:'US'},{s:'NASDAQ:MAR',n:'Marriott International',c:'US'},
-  {s:'NASDAQ:CMCSA',n:'Comcast',c:'US'},{s:'NASDAQ:EA',n:'Electronic Arts',c:'US'},{s:'NASDAQ:TTWO',n:'Take-Two Interactive',c:'US'},{s:'NASDAQ:UBER',n:'Uber Technologies',c:'US'},
-  {s:'NASDAQ:ABNB',n:'Airbnb',c:'US'},{s:'NASDAQ:PLTR',n:'Palantir',c:'US'},{s:'NASDAQ:CRWD',n:'CrowdStrike',c:'US'},{s:'NASDAQ:SNOW',n:'Snowflake',c:'US'},
-  {s:'NASDAQ:ZM',n:'Zoom Video',c:'US'},{s:'NASDAQ:DOCU',n:'DocuSign',c:'US'},{s:'NASDAQ:ROKU',n:'Roku',c:'US'},{s:'NYSE:BRK.B',n:'Berkshire Hathaway',c:'US'},
-  {s:'NYSE:JPM',n:'JPMorgan Chase',c:'US'},{s:'NYSE:V',n:'Visa',c:'US'},{s:'NYSE:MA',n:'Mastercard',c:'US'},{s:'NYSE:JNJ',n:'Johnson & Johnson',c:'US'},
-  {s:'NYSE:PG',n:'Procter & Gamble',c:'US'},{s:'NYSE:KO',n:'Coca-Cola',c:'US'},{s:'NYSE:WMT',n:'Walmart',c:'US'},{s:'NYSE:HD',n:'Home Depot',c:'US'},
-  {s:'NYSE:MCD',n:'McDonald’s',c:'US'},{s:'NYSE:DIS',n:'Walt Disney',c:'US'},{s:'NYSE:NKE',n:'Nike',c:'US'},{s:'NYSE:XOM',n:'Exxon Mobil',c:'US'},
-  {s:'NYSE:CVX',n:'Chevron',c:'US'},{s:'NYSE:CAT',n:'Caterpillar',c:'US'},{s:'NYSE:BA',n:'Boeing',c:'US'},{s:'NYSE:GE',n:'GE Aerospace',c:'US'},
-  {s:'NYSE:IBM',n:'IBM',c:'US'},{s:'NYSE:MMM',n:'3M',c:'US'},{s:'NYSE:GS',n:'Goldman Sachs',c:'US'},{s:'NYSE:MS',n:'Morgan Stanley',c:'US'},
-  {s:'NYSE:BLK',n:'BlackRock',c:'US'},{s:'NYSE:AXP',n:'American Express',c:'US'},{s:'NYSE:UNH',n:'UnitedHealth Group',c:'US'},{s:'NYSE:LLY',n:'Eli Lilly',c:'US'},
-  {s:'NYSE:MRK',n:'Merck',c:'US'},{s:'NYSE:PFE',n:'Pfizer',c:'US'},{s:'NYSE:T',n:'AT&T',c:'US'},{s:'NYSE:VZ',n:'Verizon',c:'US'},{s:'NYSE:RTX',n:'RTX Corporation',c:'US'},
-  {s:'NYSE:DE',n:'Deere & Company',c:'US'},
-  // France
-  {s:'EURONEXT:MC',n:'LVMH',c:'FR'},{s:'EURONEXT:OR',n:"L'Oréal",c:'FR'},{s:'EURONEXT:TTE',n:'TotalEnergies',c:'FR'},
-  {s:'EURONEXT:AIR',n:'Airbus',c:'FR'},{s:'EURONEXT:SAN',n:'Sanofi',c:'FR'},{s:'EURONEXT:BNP',n:'BNP Paribas',c:'FR'},
-  {s:'EURONEXT:AI',n:'Air Liquide',c:'FR'},{s:'EURONEXT:SU',n:'Schneider Electric',c:'FR'},{s:'EURONEXT:CS',n:'AXA',c:'FR'},
-  {s:'EURONEXT:RMS',n:'Hermès',c:'FR'},{s:'EURONEXT:ASM',n:'ASM International',c:'FR'},{s:'EURONEXT:DG',n:'Vinci',c:'FR'},
-  {s:'EURONEXT:MC',n:'LVMH',c:'FR'},{s:'EURONEXT:OR',n:"L'Oréal",c:'FR'},{s:'EURONEXT:TTE',n:'TotalEnergies',c:'FR'},
-  {s:'EURONEXT:AIR',n:'Airbus',c:'FR'},{s:'EURONEXT:SAN',n:'Sanofi',c:'FR'},{s:'EURONEXT:BNP',n:'BNP Paribas',c:'FR'},
-  {s:'EURONEXT:AI',n:'Air Liquide',c:'FR'},{s:'EURONEXT:SU',n:'Schneider Electric',c:'FR'},{s:'EURONEXT:CS',n:'AXA',c:'FR'},
-  {s:'EURONEXT:RMS',n:'Hermès',c:'FR'},{s:'EURONEXT:DG',n:'Vinci',c:'FR'},{s:'EURONEXT:WLN',n:'Worldline',c:'FR'},
-  {s:'EURONEXT:CAP',n:'Capgemini',c:'FR'},{s:'EURONEXT:ACA',n:'Crédit Agricole',c:'FR'},{s:'EURONEXT:GLE',n:'Société Générale',c:'FR'},
-  {s:'EURONEXT:ENGI',n:'Engie',c:'FR'},{s:'EURONEXT:KER',n:'Kering',c:'FR'},{s:'EURONEXT:RI',n:'Pernod Ricard',c:'FR'},
-  {s:'EURONEXT:STMPA',n:'STMicroelectronics',c:'FR'},{s:'EURONEXT:HO',n:'Thales',c:'FR'},{s:'EURONEXT:VIE',n:'Veolia',c:'FR'},
-  {s:'EURONEXT:RNO',n:'Renault Group',c:'FR'},{s:'EURONEXT:LR',n:'Legrand',c:'FR'},{s:'EURONEXT:EN',n:'Bouygues',c:'FR'},
-  {s:'EURONEXT:MT',n:'ArcelorMittal',c:'FR'},{s:'EURONEXT:EDEN',n:'Edenred',c:'FR'},{s:'EURONEXT:ALO',n:'Alstom',c:'FR'},
-  {s:'EURONEXT:AC',n:'Accor',c:'FR'},{s:'EURONEXT:SW',n:'Sodexo',c:'FR'},{s:'EURONEXT:CA',n:'Carrefour',c:'FR'},
-  {s:'EURONEXT:UBI',n:'Ubisoft',c:'FR'},{s:'EURONEXT:AF',n:'Air France-KLM',c:'FR'},{s:'EURONEXT:FDJ',n:'FDJ United',c:'FR'},
-  {s:'EURONEXT:SPIE',n:'SPIE',c:'FR'},{s:'EURONEXT:IPN',n:'Ipsen',c:'FR'},{s:'EURONEXT:DSY',n:'Dassault Systèmes',c:'FR'},
-  {s:'EURONEXT:EL',n:'EssilorLuxottica',c:'FR'},{s:'EURONEXT:RF',n:'Eurofins Scientific',c:'FR'},{s:'EURONEXT:GET',n:'Getlink',c:'FR'},
-  // Allemagne
-  {s:'XETR:SAP',n:'SAP',c:'DE'},{s:'XETR:SIE',n:'Siemens',c:'DE'},{s:'XETR:ALV',n:'Allianz',c:'DE'},
-  {s:'XETR:DTE',n:'Deutsche Telekom',c:'DE'},{s:'XETR:BMW',n:'BMW',c:'DE'},{s:'XETR:MBG',n:'Mercedes-Benz',c:'DE'},
-  {s:'XETR:VOW3',n:'Volkswagen',c:'DE'},{s:'XETR:BAS',n:'BASF',c:'DE'},{s:'XETR:ADS',n:'Adidas',c:'DE'},
-  // Royaume-Uni
-  {s:'LSE:SHEL',n:'Shell',c:'UK'},{s:'LSE:AZN',n:'AstraZeneca',c:'UK'},{s:'LSE:HSBA',n:'HSBC',c:'UK'},
-  {s:'LSE:ULVR',n:'Unilever',c:'UK'},{s:'LSE:BP',n:'BP',c:'UK'},{s:'LSE:GSK',n:'GSK',c:'UK'},
-  {s:'LSE:RIO',n:'Rio Tinto',c:'UK'},{s:'LSE:BARC',n:'Barclays',c:'UK'},
-  // Japon
-  {s:'TSE:7203',n:'Toyota',c:'JP'},{s:'TSE:6758',n:'Sony',c:'JP'},{s:'TSE:9984',n:'SoftBank Group',c:'JP'},{s:'TSE:7974',n:'Nintendo',c:'JP'},
-  // ETF / indices associés
-  {s:'AMEX:SPY',n:'SPDR S&P 500 ETF',c:'ETF'},{s:'NASDAQ:QQQ',n:'Invesco QQQ (Nasdaq 100)',c:'ETF'},
-  {s:'AMEX:DIA',n:'SPDR Dow Jones ETF',c:'ETF'},{s:'AMEX:IWM',n:'iShares Russell 2000',c:'ETF'}
+  ...L('US','NASDAQ','AAPL|Apple;MSFT|Microsoft;NVDA|NVIDIA;AMZN|Amazon;GOOGL|Alphabet (Google);META|Meta Platforms;TSLA|Tesla;NFLX|Netflix;AMD|AMD;COST|Costco;INTC|Intel;AVGO|Broadcom;ADBE|Adobe;CSCO|Cisco;PEP|PepsiCo;TTWO|Take-Two Interactive'),
+  ...L('US','NYSE','JPM|JPMorgan Chase;V|Visa;MA|Mastercard;KO|Coca-Cola;DIS|Walt Disney;WMT|Walmart;XOM|Exxon Mobil;NKE|Nike;BA|Boeing;JNJ|Johnson & Johnson;PG|Procter & Gamble;UNH|UnitedHealth;HD|Home Depot;MCD|McDonald\'s'),
+  ...L('FR','EURONEXT',"MC|LVMH;OR|L'Oréal;TTE|TotalEnergies;AIR|Airbus;SAN|Sanofi;BNP|BNP Paribas;AI|Air Liquide;SU|Schneider Electric;CS|AXA;RMS|Hermès;DG|Vinci;KER|Kering;EL|EssilorLuxottica;SAF|Safran;GLE|Société Générale;ACA|Crédit Agricole;ORA|Orange;CAP|Capgemini;RI|Pernod Ricard;DSY|Dassault Systèmes;STLAP|Stellantis;ENGI|Engie;SGO|Saint-Gobain;PUB|Publicis;BN|Danone;ML|Michelin;HO|Thales;CA|Carrefour;LR|Legrand;VIE|Veolia"),
+  ...L('DE','XETR','SAP|SAP;SIE|Siemens;ALV|Allianz;DTE|Deutsche Telekom;BMW|BMW;MBG|Mercedes-Benz;VOW3|Volkswagen;BAS|BASF;ADS|Adidas;BAYN|Bayer;DB1|Deutsche Börse;IFX|Infineon;MUV2|Munich Re;RWE|RWE;EOAN|E.ON;HEN3|Henkel;DBK|Deutsche Bank;CBK|Commerzbank;PAH3|Porsche SE;P911|Porsche AG;ZAL|Zalando;FRE|Fresenius;MRK|Merck KGaA;SHL|Siemens Healthineers;HEI|Heidelberg Materials;DHL|DHL Group;CON|Continental;BEI|Beiersdorf;VNA|Vonovia;QIA|Qiagen'),
+  ...L('UK','LSE','SHEL|Shell;AZN|AstraZeneca;HSBA|HSBC;ULVR|Unilever;BP|BP;GSK|GSK;RIO|Rio Tinto;BARC|Barclays;LLOY|Lloyds Banking Group;NG|National Grid;DGE|Diageo;BATS|British American Tobacco;REL|RELX;LSEG|London Stock Exchange Group;VOD|Vodafone;TSCO|Tesco;GLEN|Glencore;AAL|Anglo American;STAN|Standard Chartered;PRU|Prudential;CPG|Compass Group;NWG|NatWest;IMB|Imperial Brands;EXPN|Experian;RKT|Reckitt;BA.|BAE Systems;RR.|Rolls-Royce;BT.A|BT Group'),
+  ...L('JP','TSE','7203|Toyota;6758|Sony;9984|SoftBank Group;7974|Nintendo;6861|Keyence;8306|Mitsubishi UFJ;9432|NTT;6098|Recruit;8035|Tokyo Electron;6501|Hitachi;9983|Fast Retailing (Uniqlo);7267|Honda;8058|Mitsubishi Corp;4063|Shin-Etsu Chemical;6902|Denso;4502|Takeda;8316|Sumitomo Mitsui FG;6367|Daikin;7741|HOYA;6981|Murata;9433|KDDI;8001|Itochu;6954|Fanuc;7751|Canon;4519|Chugai Pharmaceutical;7011|Mitsubishi Heavy Industries;8031|Mitsui & Co;6857|Advantest'),
+  ...L('NL','EURONEXT','ASML|ASML;ASM|ASM International;ADYEN|Adyen;INGA|ING Group;PHIA|Philips;HEIA|Heineken;PRX|Prosus;WKL|Wolters Kluwer;AD|Ahold Delhaize;UNA|Unilever (NL);NN|NN Group;AKZA|Akzo Nobel;BESI|BE Semiconductor;MT|ArcelorMittal;IMCD|IMCD;RAND|Randstad'),
+  ...L('ETF','AMEX','SPY|SPDR S&P 500 ETF;DIA|SPDR Dow Jones ETF;IWM|iShares Russell 2000'),
+  ...L('ETF','NASDAQ','QQQ|Invesco QQQ (Nasdaq 100)')
 ];
-const COUNTRIES = {ALL:'Tous les pays',US:'États-Unis',FR:'France',DE:'Allemagne',UK:'Royaume-Uni',JP:'Japon',ETF:'ETF / indices'};
+const COUNTRIES = {ALL:'Tous les pays',US:'États-Unis',FR:'France',DE:'Allemagne',UK:'Royaume-Uni',JP:'Japon',NL:'Pays-Bas',ETF:'ETF / indices'};
 const nameOf = sym => (UNIVERSE.find(u => u.s === sym) || {}).n || sym.split(':').pop();
 function normSym(v){
   v = (v || '').trim().toUpperCase(); if (!v) return '';
@@ -389,6 +391,30 @@ function normSym(v){
   return u ? u.s : v;
 }
 $('#symlist').innerHTML = UNIVERSE.map(u => `<option value="${u.s}">${esc(u.n)}</option>`).join('');
+
+/* =====================================================================
+   RECHERCHE D'ACTION : liste intégrée d'abord, puis recherche TradingView
+   (la recherche TradingView peut être bloquée par le navigateur quand le fichier est ouvert en local)
+   ===================================================================== */
+async function resolveSymbol(raw, cb){
+  const v = (raw || '').trim(); if (!v) return;
+  if (v.includes(':')) return cb(v.toUpperCase());
+  const q = v.toLowerCase();
+  const local = UNIVERSE.filter(u => u.s.split(':')[1].toLowerCase() === q || u.n.toLowerCase().includes(q));
+  const exact = local.filter(u => u.s.split(':')[1].toLowerCase() === q || u.n.toLowerCase() === q);
+  if (exact.length === 1) return cb(exact[0].s);
+  if (local.length === 1) return cb(local[0].s);
+  if (local.length > 1) return pick('Plusieurs actions correspondent', local.slice(0, 15).map(u => ({value:u.s, label:u.n, sub:u.s})), cb);
+  try {
+    const r = await fetch('https://symbol-search.tradingview.com/symbol_search/?text=' + encodeURIComponent(v) + '&hl=0&lang=fr&type=stock&domain=production');
+    if (!r.ok) throw new Error(r.status);
+    const res = (await r.json()).slice(0, 15);
+    if (!res.length) return toast('Aucune action trouvée pour « ' + v + ' »');
+    pick('Résultats pour « ' + v + ' »', res.map(x => ({value:(x.prefix || x.exchange) + ':' + x.symbol, label:x.description || x.symbol, sub:(x.prefix || x.exchange) + ':' + x.symbol + ' · ' + (x.country || '')})), cb);
+  } catch {
+    toast('Recherche TradingView indisponible : tape le symbole au format BOURSE:TICKER (ex. EURONEXT:ASML)');
+  }
+}
 
 /* =====================================================================
    ÉTAT + SAUVEGARDE (localStorage)
@@ -409,14 +435,21 @@ const DEFAULTS = () => ({
     {symbol:'NASDAQ:TSLA'},{symbol:'EURONEXT:ASM'},{symbol:'NASDAQ:TTWO'},{symbol:'EURONEXT:OR'}
   ]
 });
+/* ---- Configuration enregistrée DANS le code ----
+   Le bouton Menu → « Sauvegarder / restaurer la configuration » remplace le `null` ci-dessous par ta config.
+   Sur un nouvel appareil (ou si ta config intégrée est plus récente que celle du navigateur), c'est elle qui s'applique. */
+/*CFG_START*/const EMBEDDED_CONFIG = null;/*CFG_END*/
 let state;
-try {
-  const d = DEFAULTS(), saved = JSON.parse(localStorage.getItem(LS) || '{}');
-  state = {...d, ...saved, modules:{...d.modules, ...(saved.modules || {})}};
-} catch { state = DEFAULTS(); }
+{
+  let saved = {};
+  try { saved = JSON.parse(localStorage.getItem(LS) || '{}'); } catch {}
+  const base = (EMBEDDED_CONFIG && (!saved.cfgAt || EMBEDDED_CONFIG.cfgAt > saved.cfgAt)) ? EMBEDDED_CONFIG : saved;
+  const d = DEFAULTS();
+  state = {...d, ...base, modules:{...d.modules, ...(base.modules || {})}};
+}
 // Nouvelle disposition par défaut : on réinitialise l'ancienne disposition sauvegardée une fois
-if (state.layoutV !== 2){ state.layout = {}; state.layoutV = 2; }
-const save = () => { try { localStorage.setItem(LS, JSON.stringify(state)); } catch {} };
+if (state.layoutV !== 3){ state.layout = {}; state.layoutV = 3; }
+const save = () => { try { localStorage.setItem(LS, JSON.stringify(state)); } catch {} scheduleSync(); };
 document.documentElement.dataset.theme = state.theme;
 
 /* =====================================================================
@@ -450,7 +483,7 @@ const lazy = (el, fn) => { el._load = fn; io.observe(el); };
    - Taux de change : API gratuite Frankfurter (sans clé).
    - Cours du portefeuille : Finnhub (si clé) sinon cours manuel saisi.
    ===================================================================== */
-let fx = {EUR:1, USD:1.10, GBP:0.85}, fxLive = false;   // valeurs de secours approximatives
+let fx = {EUR:1, USD:1.10, GBP:0.85, JPY:165}, fxLive = false;   // valeurs de secours approximatives
 const quotes = {};                                       // cours Finnhub : {symbole: {price, ts}}
 const US = ['NASDAQ','NYSE','AMEX','ARCA','BATS'];
 const cv = (v, from) => v / (fx[from] || 1) * (fx[state.ccy] || 1);
@@ -460,7 +493,7 @@ const fmtPct = v => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2).replace('.',
 
 async function fetchFx(){
   try {
-    const r = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD,GBP');
+    const r = await fetch('https://api.frankfurter.dev/v1/latest?base=EUR&symbols=USD,GBP,JPY');
     const j = await r.json();
     fx = {EUR:1, ...j.rates}; fxLive = true;
   } catch { fxLive = false; }
@@ -469,19 +502,9 @@ async function fetchFx(){
     : 'Taux de change : service injoignable, taux approximatifs utilisés. Les conversions € / $ / £ sont donc indicatives.';
 }
 
+// Cours actuels : saisis à la main avec le crayon ✎ (aucune source automatique).
 async function fetchQuotes(){
-  if (!state.key){ setStatus('Cours actuels : saisie manuelle (aucune clé API). Les graphiques TradingView se mettent à jour d\'eux-mêmes.'); return; }
-  const syms = [...new Set(state.positions.map(p => p.symbol).filter(s => US.includes(s.split(':')[0])))];
-  let ok = 0, ko = 0;
-  await Promise.all(syms.map(async s => {
-    try {
-      const r = await fetch('https://finnhub.io/api/v1/quote?symbol=' + encodeURIComponent(s.split(':')[1]) + '&token=' + encodeURIComponent(state.key));
-      if (!r.ok) throw new Error(r.status);
-      const j = await r.json();
-      if (j && j.c > 0){ quotes[s] = {price:j.c, ts:Date.now()}; ok++; } else ko++;
-    } catch { ko++; }
-  }));
-  setStatus(`Finnhub : ${ok} cours reçu(s)` + (ko ? `, ${ko} échec(s) (clé invalide, quota ou action non US → cours manuel utilisé)` : '') + '. Données US, pas garanties temps réel strict.');
+  setStatus("Cours actuels saisis à la main (✎). Les graphiques TradingView sont en général différés d'environ 15 min.");
 }
 function setStatus(t){ const n = P('summary', '#pf-status'); if (n) n.textContent = t; }
 
@@ -489,17 +512,18 @@ function setStatus(t){ const n = P('summary', '#pf-status'); if (n) n.textConten
    CALCULS DU PORTEFEUILLE
    ===================================================================== */
 function priceOf(p){
-  if (p.ccy === 'USD' && quotes[p.symbol]) return {price:quotes[p.symbol].price, src:'api'};
-  if (p.manual > 0) return {price:p.manual, src:'manual'};
-  return {price:p.buy, src:'none'};
+  const q = quotes[p.symbol];
+  if (q) return {price:q.price, src:q.src, ccy:q.ccy};
+  if (p.manual > 0) return {price:p.manual, src:'manual', ccy:p.ccy};
+  return {price:p.buy, src:'none', ccy:p.ccy};
 }
 function calc(p){
-  const {price, src} = priceOf(p);
-  const invested = cv(p.qty * p.buy, p.ccy), value = cv(p.qty * price, p.ccy);
+  const {price, src, ccy} = priceOf(p);
+  const invested = cv(p.qty * p.buy, p.ccy), value = cv(p.qty * price, ccy);
   const pl = value - invested;
   return {price, src, invested, value, pl, pct: invested ? pl / invested * 100 : 0};
 }
-const SRC_LABEL = {api:'Finnhub', manual:'Cours manuel', none:'≈ prix d\'achat'};
+const SRC_LABEL = {yahoo:'Yahoo · différé', finnhub:'Finnhub', manual:'Cours manuel', none:'≈ prix d\'achat'};
 
 /* =====================================================================
    PANNEAUX (construction du HTML de chaque module)
@@ -536,7 +560,7 @@ function buildPanels(){
   panelEls.portfolio = html(`<section class="panel">
     <header class="panel-head"><h3>${I.chart}Investissements</h3>
       <div class="tools"><button class="btn primary sm" id="pf-add">+ Ajouter</button></div></header>
-    <div class="panel-body"><div class="pf-list" id="pf-list"></div></div></section>`);
+    <div class="panel-body fill"><div class="pf-list" id="pf-list"></div></div></section>`);
 
   panelEls.favorites = html(`<section class="panel">
     <header class="panel-head"><h3>${I.star}Favoris & surveillance</h3>
@@ -564,7 +588,7 @@ function buildPanels(){
         </div>
         <div class="seg" id="mk-seg"><button data-v="tiles">Tuiles</button><button data-v="heat">Heatmap (performance)</button></div>
       </div></header>
-    <div class="panel-body" id="mk-body"></div></section>`);
+    <div class="panel-body fill" id="mk-body"></div></section>`);
 }
 
 /* =====================================================================
@@ -580,6 +604,8 @@ function initGrid(){
   grid.on('dragstart resizestart', () => document.body.classList.add('dragging'));
   grid.on('dragstop resizestop',  () => document.body.classList.remove('dragging'));
   grid.on('change', saveLayout);
+  // après un déplacement / redimensionnement, on prévient les widgets TradingView pour qu'ils se recalent
+  grid.on('resizestop dragstop', () => setTimeout(() => window.dispatchEvent(new Event('resize')), 120));
   Object.keys(PANELS).forEach(id => state.modules[id] && mountPanel(id));
   grid.setStatic(state.locked);
 }
@@ -659,7 +685,6 @@ function createCard(p){
       </div>
     </div>
     <div class="pc-chart"></div>
-    <label class="pc-price">Cours actuel <input type="number" step="any" min="0" class="p-live" placeholder="à saisir"><small class="p-unit"></small></label>
     <div class="pc-stats">
       <div><span>Investi</span><b class="s-inv"></b></div>
       <div><span>Valeur actuelle</span><b class="s-val"></b></div>
@@ -672,12 +697,6 @@ function createCard(p){
     if (b.dataset.act === 'edit') openPosForm(pos);
     if (b.dataset.act === 'del') deletePosition(pos.id);
   });
-  // Saisie directe du cours actuel (utile sans clé API ou hors actions US)
-  $('.p-live', c).addEventListener('change', e => {
-    const pos = state.positions.find(x => x.id === c.dataset.id); if (!pos) return;
-    const v = parseFloat(e.target.value);
-    pos.manual = v > 0 ? v : null; save(); refreshNumbers();
-  });
   return c;
 }
 function updateCard(card, p){
@@ -686,12 +705,9 @@ function updateCard(card, p){
   $('.pc-name', card).textContent = p.name || p.symbol;
   $('.pc-tick', card).textContent = p.symbol + ' · ' + p.ccy;
   const badge = $('.pc-badge', card);
-  badge.textContent = c.src === 'none' ? 'Cours à saisir' : SRC_LABEL[c.src];
+  badge.textContent = c.src === 'none' ? 'Cours à renseigner ✎' : SRC_LABEL[c.src];
   badge.classList.toggle('warn', c.src === 'none');
-  const live = $('.p-live', card);
-  live.disabled = c.src === 'api';
-  if (document.activeElement !== live) live.value = c.src === 'none' ? '' : +c.price.toFixed(4);
-  $('.p-unit', card).textContent = p.ccy;
+
   $('.s-inv', card).textContent = fmt(c.invested);
   $('.s-val', card).textContent = c.src === 'none' ? '—' : fmt(c.value);
   const pl = $('.s-pl', card);
@@ -722,7 +738,7 @@ function updateSummary(){
   state.positions.forEach(p => { const c = calc(p); inv += c.invested; val += c.value; items.push({n:p.name || p.symbol, v:c.value}); });
   const missing = state.positions.filter(p => priceOf(p).src === 'none').length;
   P('summary', '#pf-warn').textContent = missing
-    ? `⚠ ${missing} position(s) sans cours actuel : elles comptent au prix d'achat (gain 0). Saisis le cours sur la carte, ou ajoute une clé Finnhub (actions US).` : '';
+    ? `⚠ ${missing} position(s) sans cours actuel : elles comptent au prix d'achat (gain 0). Renseigne le cours actuel avec le crayon ✎ de la carte pour voir la plus-value.` : '';
   const pl = val - inv, pct = inv ? pl / inv * 100 : 0;
   P('summary', '#s-total').textContent = fmt(val);
   P('summary', '#s-inv').textContent = fmt(inv);
@@ -752,6 +768,7 @@ function guessCcy(sym){
   if (US.includes(ex)) return 'USD';
   if (['EURONEXT','XETR','MIL','BME','AMS'].includes(ex)) return 'EUR';
   if (ex === 'LSE') return 'GBP';
+  if (ex === 'TSE') return 'JPY';
   return state.ccy;
 }
 function openPosForm(pos, prefill){
@@ -788,6 +805,7 @@ $('#f-pos').addEventListener('submit', e => {
   let buy = num('#p-buy'), qty = num('#p-qty'); const amt = num('#p-amt');
   if (!(qty > 0) && amt > 0 && buy > 0) qty = amt / buy;
   if (!(buy > 0) && amt > 0 && qty > 0) buy = amt / qty;
+  if (!symbol.includes(':')){ toast('Symbole inconnu : choisis-le dans la liste ou tape BOURSE:TICKER (ex. EURONEXT:ASML)'); return; }
   if (!symbol || !(buy > 0) || !(qty > 0)){ toast('Renseigne le symbole et 2 valeurs parmi prix / quantité / montant'); return; }
   const data = {symbol, name:$('#p-name').value.trim() || nameOf(symbol), qty, buy, ccy:$('#p-ccy').value, manual:num('#p-man') > 0 ? num('#p-man') : null};
   if (editingId) Object.assign(state.positions.find(p => p.id === editingId), data);
@@ -809,27 +827,29 @@ function renderFavorites(){
   const host = P('favorites', '#fav-list');
   host.innerHTML = '';
   if (!state.favorites.length){ host.innerHTML = '<div class="empty">Aucun favori.<br>Cherche une action ci-dessus pour la suivre.</div>'; return; }
+  const table = html('<div class="ftable"><div class="fhead"><span></span><span>Action · cours (différé)</span><span style="text-align:right">Actions</span></div></div>');
   state.favorites.forEach(f => {
     const row = html(`<div class="frow" data-sym="${esc(f.symbol)}">
-      <div class="f-top">
-        <span class="f-grip" title="Glisser pour réorganiser">${I.grip}</span>
-        <div class="f-info" title="Voir le détail"><b>${esc(nameOf(f.symbol))}</b><small>${esc(f.symbol)}</small></div>
-        <button class="btn sm" data-act="pf">+ Portefeuille</button>
+      <span class="f-grip" title="Glisser pour réorganiser">${I.grip}</span>
+      <div class="f-w"></div>
+      <div class="f-actions">
+        <button class="icon" data-act="info" title="Détails">${I.info}</button>
+        <button class="icon" data-act="pf" title="Ajouter au portefeuille">${I.wallet}</button>
         <button class="icon" data-act="rm" title="Retirer des favoris">${I.del}</button>
-      </div>
-      <div class="f-quote"></div></div>`);
-    const q = $('.f-quote', row);
-    lazy(q, () => tvWidget(q, 'single-quote', {symbol:f.symbol}));
-    // la ligne n'est "draggable" que quand on saisit la poignée (sinon les iframes gênent)
+      </div></div>`);
+    const w = $('.f-w', row);
+    lazy(w, () => tvWidget(w, 'single-quote', {symbol:f.symbol}));
+    // la ligne n'est "draggable" que quand on saisit la poignée (sinon l'iframe gêne)
     $('.f-grip', row).addEventListener('mousedown', () => row.draggable = true);
     row.addEventListener('click', e => {
-      const b = e.target.closest('[data-act]');
-      if (b && b.dataset.act === 'pf') openPosForm(null, {symbol:f.symbol, name:nameOf(f.symbol)});
-      else if (b && b.dataset.act === 'rm') removeFavorite(f.symbol);
-      else if (e.target.closest('.f-info')) openStock(f.symbol);
+      const b = e.target.closest('[data-act]'); if (!b) return;
+      if (b.dataset.act === 'info') openStock(f.symbol);
+      if (b.dataset.act === 'pf') openPosForm(null, {symbol:f.symbol, name:nameOf(f.symbol)});
+      if (b.dataset.act === 'rm') removeFavorite(f.symbol);
     });
-    host.appendChild(row);
+    table.appendChild(row);
   });
+  host.appendChild(table);
 }
 function bindFavDnD(){ // appelée une seule fois, après buildPanels()
   let dragSym = null, target = null;
@@ -885,7 +905,13 @@ function renderMarkets(){
 function renderTiles(host){
   const q = $('#mk-q', panelEls.markets).value.trim().toLowerCase();
   const list = UNIVERSE.filter(u => (state.country === 'ALL' || u.c === state.country) && (!q || u.n.toLowerCase().includes(q) || u.s.toLowerCase().includes(q)));
-  const shown = list.slice(0, state.tiles);
+  let ordered = list;
+  if (state.country === 'ALL' && !q){      // on alterne les pays pour voir un peu de tout
+    const by = {}; list.forEach(u => (by[u.c] = by[u.c] || []).push(u));
+    ordered = []; const keys = Object.keys(by);
+    for (let i = 0; keys.some(k => by[k][i]); i++) keys.forEach(k => by[k][i] && ordered.push(by[k][i]));
+  }
+  const shown = ordered.slice(0, state.tiles);
   host.innerHTML = `<p class="count">${shown.length} / ${list.length} actions · clique sur une tuile pour le détail · pour une autre action, tape son symbole dans la barre de recherche en haut</p><div class="tiles"></div>`;
   const wrap = $('.tiles', host);
   shown.forEach(u => {
@@ -986,9 +1012,9 @@ function renderAll(){ Object.keys(PANELS).forEach(id => state.modules[id] && ren
    ===================================================================== */
 function bindPanelEvents(){
   P('portfolio', '#pf-add').onclick = () => openPosForm();
-  const favGo = () => { const i = P('favorites', '#fav-input'); addFavorite(i.value); i.value = ''; };
+  const favGo = () => { const i = P('favorites', '#fav-input'); resolveSymbol(i.value, addFavorite); i.value = ''; };
   P('favorites', '#fav-add').onclick = favGo;
-  P('favorites', '#fav-input').addEventListener('keydown', e => { if (e.key === 'Enter') favGo(); });
+  P('favorites', '#fav-input').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); favGo(); } });
   const mk = panelEls.markets;
   $('#mk-seg', mk).onclick = e => { const b = e.target.closest('button'); if (!b) return; state.view = b.dataset.v; save(); renderMarkets(); };
   $('#mk-q', mk).addEventListener('input', () => { clearTimeout(bindPanelEvents.t); bindPanelEvents.t = setTimeout(renderMarkets, 250); });
@@ -999,7 +1025,7 @@ function bindPanelEvents(){
 // Note : renderMarkets() recrée la liste des pays à chaque appel ; on garde le texte de recherche tel quel.
 
 // Recherche globale (barre du haut)
-$('#gsearch').addEventListener('keydown', e => { if (e.key === 'Enter'){ openStock(e.target.value); e.target.value = ''; } });
+$('#gsearch').addEventListener('keydown', e => { if (e.key === 'Enter'){ e.preventDefault(); resolveSymbol(e.target.value, openStock); e.target.value = ''; } });
 $('#gsearch').addEventListener('change', e => { if (UNIVERSE.some(u => u.s === e.target.value)){ openStock(e.target.value); e.target.value = ''; } });
 
 // Menu déroulant
@@ -1018,6 +1044,8 @@ menu.addEventListener('click', e => {
   if (m === 'display') openDisplay();
   if (m === 'lock') setLocked(!state.locked);
   if (m === 'settings') openSettings();
+  if (m === 'config') openConfig();
+  if (m === 'gh') openGh();
 });
 const posItems = () => state.positions.map(p => ({value:p.id, label:p.name || p.symbol, sub:`${p.symbol} · ${p.qty} × ${p.buy} ${p.ccy}`}));
 function pick(title, items, cb){
@@ -1031,7 +1059,7 @@ function pick(title, items, cb){
   });
   $('#dlg-pick').showModal();
 }
-$('#f-input').addEventListener('submit', e => { e.preventDefault(); addFavorite($('#i-sym').value); $('#dlg-input').close(); });
+$('#f-input').addEventListener('submit', e => { e.preventDefault(); const v = $('#i-sym').value; $('#dlg-input').close(); resolveSymbol(v, addFavorite); });
 
 // Fermeture générique des dialogues
 document.addEventListener('click', e => {
@@ -1054,17 +1082,54 @@ $('#dlg-display').addEventListener('change', e => {
 });
 $('#d-reset').onclick = resetLayout;
 
+// Dialogue Configuration (sauvegarde dans le code)
+function currentConfig(){
+  state.cfgAt = Date.now(); save();           // horodatage : la config exportée devient la référence
+  return JSON.stringify(state, null, 1);
+}
+function openConfig(){ $('#c-json').value = currentConfig(); $('#c-msg').textContent = ''; $('#dlg-config').showModal(); }
+const cmsg = t => $('#c-msg').textContent = t;
+function downloadText(name, text, type){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([text], {type})); a.download = name; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+}
+$('#c-copy').onclick = async () => {
+  try { await navigator.clipboard.writeText($('#c-json').value); cmsg('Config copiée.'); }
+  catch { $('#c-json').select(); cmsg('Sélectionnée : fais Ctrl+C.'); }
+};
+$('#c-dl').onclick = () => downloadText('dashboard-config.json', $('#c-json').value, 'application/json');
+$('#c-html').onclick = async () => {
+  try {
+    const json = JSON.stringify(JSON.parse($('#c-json').value)).replace(/</g, '\\u003c');
+    const r = await fetch(location.href.split('#')[0]);
+    if (!r.ok) throw new Error(r.status);
+    const src = await r.text(), re = /\/\*CFG_START\*\/[\s\S]*?\/\*CFG_END\*\//;
+    if (!re.test(src)) throw new Error('marqueur introuvable');
+    downloadText('dashboard-bourse.html', src.replace(re, () => '/*CFG_' + 'START*/const EMBEDDED_CONFIG = ' + json + ';/*CFG_' + 'END*/'), 'text/html');
+    cmsg('HTML téléchargé : remplace ton fichier (ou celui du dépôt GitHub) par celui-ci.');
+  } catch {
+    cmsg("Impossible de relire le fichier (fréquent quand il est ouvert en local). Télécharge la config (.json), puis dans le code remplace le mot « null » de la ligne « const EMBEDDED_CONFIG = null; » par son contenu.");
+  }
+};
+$('#c-apply').onclick = () => {
+  try {
+    const c = JSON.parse($('#c-json').value);
+    if (!Array.isArray(c.positions) || !Array.isArray(c.favorites)) throw new Error('format');
+    if (!confirm('Remplacer la configuration actuelle par ce JSON ?')) return;
+    c.cfgAt = Date.now(); localStorage.setItem(LS, JSON.stringify(c)); location.reload();
+  } catch { cmsg('JSON invalide : colle une config exportée depuis ce dashboard.'); }
+};
+
 // Dialogue Paramètres
 function openSettings(){
-  $('#s-ccy').value = state.ccy; $('#s-refresh').value = state.refresh; $('#s-key').value = state.key;
+  $('#s-ccy').value = state.ccy;
   $('#s-notif').checked = state.notif; $('#s-thr').value = state.thr;
   $('#dlg-settings').showModal();
 }
 $('#dlg-settings').addEventListener('change', async e => {
   const t = e.target;
   if (t.id === 's-ccy'){ state.ccy = t.value; save(); refreshNumbers(); }
-  if (t.id === 's-refresh'){ state.refresh = +t.value; save(); setupTimer(); }
-  if (t.id === 's-key'){ state.key = t.value.trim(); save(); await fetchQuotes(); refreshNumbers(); }
   if (t.id === 's-thr'){ state.thr = Math.max(1, +t.value || 5); save(); }
   if (t.id === 's-notif'){
     state.notif = t.checked;
@@ -1077,6 +1142,120 @@ $('#dlg-settings').addEventListener('change', async e => {
 });
 
 /* =====================================================================
+   SYNCHRONISATION GITHUB
+   La config est lue / écrite dans un fichier du dépôt via l'API GitHub (gratuite, accessible depuis le navigateur).
+   - Lecture : sans jeton si le dépôt est public.
+   - Écriture : jeton "fine-grained" limité à ce dépôt (permission Contents : Read and write), gardé seulement dans ce navigateur.
+   ===================================================================== */
+// À remplir UNE fois pour ne rien retaper sur chaque appareil (le jeton, lui, ne va JAMAIS ici) :
+const GITHUB = {owner:'', repo:'', branch:'main', path:'dashboard-config.json'};
+const GH_LS = 'tdb-gh', META_LS = 'tdb-sync';
+let gh = {...GITHUB, token:'', auto:true};
+try { Object.assign(gh, JSON.parse(localStorage.getItem(GH_LS) || '{}')); } catch {}
+let meta = {};                                    // meta.json = dernière config connue identique sur GitHub
+try { meta = JSON.parse(localStorage.getItem(META_LS) || '{}'); } catch {}
+let syncReady = false, conflict = false, pushTimer = null;
+const saveGh = () => { try { localStorage.setItem(GH_LS, JSON.stringify(gh)); } catch {} };
+const saveMeta = () => { try { localStorage.setItem(META_LS, JSON.stringify(meta)); } catch {} };
+const ghOn = () => !!(gh.owner && gh.repo);
+// JSON "canonique" (clés triées) pour comparer deux configs sans faux écarts
+const canon = v => JSON.stringify(v, (k, x) => (x && typeof x === 'object' && !Array.isArray(x)) ? Object.keys(x).sort().reduce((r, key) => (r[key] = x[key], r), {}) : x);
+const norm = c => { const d = DEFAULTS(), m = {...d, ...c, modules:{...d.modules, ...((c && c.modules) || {})}}; delete m.cfgAt; return canon(m); };
+const apiUrl = (q = '') => `https://api.github.com/repos/${encodeURIComponent(gh.owner)}/${encodeURIComponent(gh.repo)}/contents/${gh.path.split('/').map(encodeURIComponent).join('/')}${q}`;
+const ghHeaders = () => ({Accept:'application/vnd.github+json', ...(gh.token ? {Authorization:'Bearer ' + gh.token} : {})});
+const b64dec = b => new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\n/g, '')), c => c.charCodeAt(0)));
+const b64enc = t => { let bin = ''; new TextEncoder().encode(t).forEach(b => bin += String.fromCharCode(b)); return btoa(bin); };
+
+function chip(text, cls, tip){
+  const c = $('#gh-chip'); c.textContent = '☁ ' + text; c.className = 'btn sm ' + (cls || ''); c.title = tip || 'Synchronisation GitHub';
+  const m = $('#g-msg'); if (m) m.textContent = tip || text;
+}
+async function ghGet(){
+  const r = await fetch(apiUrl('?ref=' + encodeURIComponent(gh.branch)), {headers:ghHeaders(), cache:'no-store'});
+  if (r.status === 404) return null;
+  if (!r.ok) throw new Error('GitHub ' + r.status + (r.status === 401 ? ' (jeton invalide ?)' : r.status === 403 ? ' (quota ou droits ?)' : ''));
+  const j = await r.json();
+  return {sha:j.sha, text:b64dec(j.content)};
+}
+async function ghPush(force){
+  if (!gh.token) throw new Error('aucun jeton');
+  const cur = await ghGet();
+  if (cur && !force && norm(JSON.parse(cur.text)) !== meta.json){ conflict = true; throw new Error('conflit : GitHub a changé depuis ta dernière synchro'); }
+  const text = JSON.stringify(JSON.parse(norm(state)), null, 1);
+  const r = await fetch(apiUrl(), {method:'PUT', headers:{...ghHeaders(), 'Content-Type':'application/json'},
+    body:JSON.stringify({message:'Mise à jour du dashboard', content:b64enc(text), branch:gh.branch, ...(cur ? {sha:cur.sha} : {})})});
+  if (!r.ok) throw new Error('GitHub ' + r.status + (r.status === 401 || r.status === 403 || r.status === 404 ? ' (jeton / droits / dépôt ?)' : ''));
+  meta = {json:norm(state)}; saveMeta(); conflict = false;
+}
+function applyRemote(text){
+  const c = JSON.parse(text), d = DEFAULTS();
+  const merged = {...d, ...c, modules:{...d.modules, ...(c.modules || {})}}; delete merged.cfgAt;
+  localStorage.setItem(LS, JSON.stringify(merged));
+  meta = {json:norm(c)}; saveMeta();
+  location.reload();
+}
+function scheduleSync(){
+  if (!syncReady || conflict || !gh.token || !gh.auto || !ghOn()) return;
+  if (norm(state) === meta.json) return;
+  chip('à envoyer…', 'chip-wait', 'Modifications en attente d\'envoi vers GitHub');
+  clearTimeout(pushTimer); pushTimer = setTimeout(doPush, 4000);
+}
+async function doPush(force){
+  if (!force && norm(state) === meta.json) return;
+  chip('envoi…', 'chip-wait', 'Envoi vers GitHub…');
+  try { await ghPush(force); chip('synchronisé', 'chip-ok', 'Synchronisé avec GitHub à ' + new Date().toLocaleTimeString('fr-FR')); }
+  catch (e){ chip('erreur', 'chip-err', 'Échec de l\'envoi : ' + e.message); }
+}
+async function initialSync(){
+  if (!ghOn()){ chip('GitHub', '', 'Synchronisation non configurée : clique pour la régler'); return; }
+  chip('…', 'chip-wait', 'Lecture de GitHub…');
+  try {
+    const cur = await ghGet();
+    if (!cur){
+      syncReady = true;
+      if (gh.token){ await doPush(true); } else chip('fichier absent', 'chip-err', 'Aucun fichier de config sur GitHub (ajoute un jeton pour le créer).');
+      return;
+    }
+    const rem = norm(JSON.parse(cur.text)), loc = norm(state);
+    if (rem === loc){ meta = {json:rem}; saveMeta(); syncReady = true; chip('synchronisé', 'chip-ok', 'Identique à GitHub'); return; }
+    if (!meta.json){      // premier lancement sur cet appareil
+      if (confirm('Une configuration existe sur GitHub.\nLa charger ? (elle remplace les données de cet appareil)')) return applyRemote(cur.text);
+      conflict = true; chip('conflit', 'chip-err', 'Choisis « Charger depuis GitHub » ou « Envoyer vers GitHub » dans la fenêtre de synchro.'); return;
+    }
+    if (rem !== meta.json){   // GitHub a changé depuis la dernière synchro
+      if (!gh.token || loc === meta.json) return applyRemote(cur.text);
+      conflict = true; chip('conflit', 'chip-err', 'GitHub ET cet appareil ont changé. Ouvre la fenêtre de synchro : « Charger » ou « Envoyer ».'); return;
+    }
+    syncReady = true;     // GitHub inchangé, modifications locales éventuelles à envoyer
+    if (gh.token && gh.auto && loc !== meta.json) scheduleSync(); else chip(gh.token ? 'synchronisé' : 'lecture seule', 'chip-ok', gh.token ? 'À jour' : 'Lecture seule (pas de jeton)');
+  } catch (e){ chip('hors ligne', 'chip-err', 'Lecture de GitHub impossible : ' + e.message); }
+}
+function openGh(){
+  $('#g-owner').value = gh.owner; $('#g-repo').value = gh.repo; $('#g-branch').value = gh.branch;
+  $('#g-path').value = gh.path; $('#g-token').value = gh.token; $('#g-auto').checked = gh.auto;
+  $('#dlg-gh').showModal();
+}
+const readGhForm = () => {
+  gh = {owner:$('#g-owner').value.trim(), repo:$('#g-repo').value.trim(), branch:$('#g-branch').value.trim() || 'main',
+        path:$('#g-path').value.trim() || 'dashboard-config.json', token:$('#g-token').value.trim(), auto:$('#g-auto').checked};
+  saveGh();
+};
+$('#gh-chip').onclick = openGh;
+$('#g-save').onclick = () => { readGhForm(); syncReady = false; conflict = false; initialSync(); };
+$('#g-push').onclick = async () => {
+  readGhForm(); if (!ghOn()) return chip('GitHub', '', 'Renseigne propriétaire et dépôt.');
+  if (!confirm('Écraser la config sur GitHub avec celle de cet appareil ?')) return;
+  syncReady = true; await doPush(true);
+};
+$('#g-pull').onclick = async () => {
+  readGhForm(); if (!ghOn()) return chip('GitHub', '', 'Renseigne propriétaire et dépôt.');
+  try {
+    const cur = await ghGet(); if (!cur) return chip('fichier absent', 'chip-err', 'Aucun fichier sur GitHub.');
+    if (confirm('Remplacer les données de cet appareil par celles de GitHub ?')) applyRemote(cur.text);
+  } catch (e){ chip('erreur', 'chip-err', e.message); }
+};
+
+/* =====================================================================
    DÉMARRAGE
    ===================================================================== */
 buildPanels();
@@ -1087,7 +1266,7 @@ setLocked(state.locked);
 renderAll();
 fetchFx().then(() => { refreshNumbers(); });
 fetchQuotes().then(refreshNumbers);
-setupTimer();
+initialSync();
 </script>
 </body>
 </html>
