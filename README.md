@@ -35,6 +35,11 @@ Fichier : `dashboard-bourse.html` · Données de marché : widgets gratuits [Tra
 
 ---
 
+### Sur téléphone
+Sur un écran de moins de 900 px de large, le dashboard passe en **version mobile** : les blocs sont empilés les uns sous les autres (bandeau, portefeuille, investissements, favoris, marchés) et la page défile. La disposition en grille (déplacer / redimensionner / verrouiller) n'existe que sur ordinateur. Les tuiles passent sur 2 colonnes, la fiche détaillée s'ouvre en plein écran, et la synchronisation GitHub fonctionne de la même façon (colle ton jeton une fois sur le téléphone). Tu peux aussi ajouter la page à l'écran d'accueil depuis le menu de ton navigateur. Si tu pivotes le téléphone au-delà de 900 px, la page se recharge dans l'autre mode.
+
+---
+
 ## 3. Portefeuille et plus-value
 
 ### Ajouter une action
